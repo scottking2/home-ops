@@ -1,0 +1,8 @@
+---
+kubernetes:
+  children:
+    controllers:
+      hosts:
+        "k8s-3":
+          ansible_user: "sking"
+          ansible_host: "10.0.0.13"
