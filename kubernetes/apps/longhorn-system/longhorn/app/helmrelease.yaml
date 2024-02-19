@@ -46,3 +46,4 @@ spec:
       ingressClassName: internal
       host: longhorn.${SECRET_DOMAIN}
       tls: true
+      secureBackends: true
