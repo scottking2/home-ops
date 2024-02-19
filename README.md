@@ -309,8 +309,8 @@ You have two different options for setting up your local workstation.
     ```sh
     kubectl get nodes -o wide
     # NAME           STATUS   ROLES                       AGE     VERSION
-    # k8s-0          Ready    control-plane,etcd,master   1h      v1.29.1
-    # k8s-1          Ready    worker                      1h      v1.29.1
+    # k8s-0          Ready    control-plane,etcd,master   1h      v1.27.10
+    # k8s-1          Ready    worker                      1h      v1.27.10
     ```
 
 3. Continue on to 🔹 [**Stage 6**](#-stage-6-install-flux-in-your-cluster)
