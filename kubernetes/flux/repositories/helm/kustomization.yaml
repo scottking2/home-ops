@@ -12,3 +12,4 @@ resources:
   - ./openebs.yaml
   - ./stakater.yaml
   - ./rancher-latest.yaml
+  - ./longhorn.yaml
