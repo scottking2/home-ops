@@ -13,6 +13,7 @@ spec:
         kind: HelmRepository
         name: rancher-latest
         namespace: flux-system
+  targetNamespace: cattle-system
   values:
     replicas: 1
     hostname: rancher.${SECRET_DOMAIN}
