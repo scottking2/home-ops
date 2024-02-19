@@ -11,4 +11,4 @@ resources:
   - ./metrics-server.yaml
   - ./openebs.yaml
   - ./stakater.yaml
-  - ./rancher-latest-charts.yaml
+  - ./rancher-latest.yaml
