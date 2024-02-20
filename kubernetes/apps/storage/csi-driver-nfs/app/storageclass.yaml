@@ -7,7 +7,7 @@ provisioner: nfs.csi.k8s.io
 parameters:
   server: ${SECRET_NFS_SERVER}
   share: ${SECRET_NFS_PATH}
-reclaimPolicy: Reclaim
+reclaimPolicy: Retain
 volumeBindingMode: Immediate
 # Note: The first two options are strictly for NFSv4.2
 mountOptions: ["nfsvers=4.2", "nconnect=8", "hard", "noatime"]
