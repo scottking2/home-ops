@@ -1,0 +1,48 @@
+---
+# yaml-language-server: $schema=https://github.com/fluxcd-community/flux2-schemas/raw/main/helmrelease-helm-v2beta2.json
+apiVersion: helm.toolkit.fluxcd.io/v2beta2
+kind: HelmRelease
+metadata:
+  name: csi-driver-nfs
+spec:
+  interval: 30m
+  chart:
+    spec:
+      chart: csi-driver-nfs
+      version: v4.6.0
+      sourceRef:
+        kind: HelmRepository
+        name: csi-driver-nfs
+        namespace: flux-system
+  install:
+    remediation:
+      retries: 3
+  upgrade:
+    cleanupOnFail: true
+    remediation:
+      retries: 3
+  uninstall:
+    keepHistory: false
+  values:
+    controller:
+      runOnControlPlane: true
+    externalSnapshotter:
+      enabled: false
+    node:
+      tolerations: []
+  # runOnControlPlane: true sets the nodeSelector to
+  # node-role.kubernetes.io/control-plane: "" - which does not match the
+  # actual value of "true".
+  postRenderers:
+    - kustomize:
+        patchesStrategicMerge:
+          - apiVersion: apps/v1
+            kind: Deployment
+            metadata:
+              name: csi-nfs-controller
+              namespace: storage
+            spec:
+              template:
+                spec:
+                  nodeSelector:
+                    node-role.kubernetes.io/control-plane: "true"
