@@ -137,7 +137,7 @@ spec:
     persistence:
       config:
         enabled: true
-        existingClaim: pvc-plex
+        existingClaim: plex-pvc
         globalMounts:
           - path: /config
       tmp:
