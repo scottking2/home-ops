@@ -42,7 +42,7 @@ spec:
               # See https://support.plex.tv/articles/201105343-advanced-hidden-server-settings/
               TZ: America/Denver
               ADVERTISE_IP: "https://kingplex.${SECRET_DOMAIN},http://10.0.0.233:32400"
-              ALLOWED_NETWORKS: "10.0.0.0/255.255.255.0"
+              ALLOWED_NETWORKS: "10.0.0.0/24"
               HOSTNAME: kingplex.${SECRET_DOMAIN}
             # resources:
             #   requests:
