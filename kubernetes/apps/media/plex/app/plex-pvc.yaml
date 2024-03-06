@@ -14,7 +14,7 @@ spec:
   csi:
     driver: driver.longhorn.io
     fsType: ext4
-    volumeHandle: plex-volume  # The name of your Longhorn volume
+    # volumeHandle: plex-volume  # The name of your Longhorn volume
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
