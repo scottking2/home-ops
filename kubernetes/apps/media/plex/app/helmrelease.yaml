@@ -147,6 +147,6 @@ spec:
       media:
         type: nfs
         server: ${SECRET_NFS_SERVER}
-        path: ${SECRET_NFS_PATH}/plex/media-plex/media
+        path: ${SECRET_NFS_PATH}/plex/media-plex-media
         globalMounts:
           - path: /media
