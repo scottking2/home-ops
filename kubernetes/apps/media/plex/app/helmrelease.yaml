@@ -150,4 +150,3 @@ spec:
         path: ${SECRET_NFS_PATH}/plex/media-plex-media
         globalMounts:
           - path: /media
-
