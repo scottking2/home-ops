@@ -75,7 +75,7 @@ spec:
     service:
       main:
         type: LoadBalancer
-        # externalTrafficPolicy: Cluster
+        externalTrafficPolicy: Cluster
         annotations:
           io.cilium/lb-ipam-ips: "10.0.0.233"
         ports:
