@@ -112,18 +112,8 @@ spec:
       main:
         enabled: true
         className: external
-        # annotations:
-        #   nginx.ingress.kubernetes.io/backend-protocol: "HTTPS"
-        #   hajimari.io/icon: mdi:plex
-        #   gethomepage.dev/enabled: "true"
-        #   gethomepage.dev/description: Media Player
-        #   gethomepage.dev/group: Media
-        #   gethomepage.dev/icon: mdi-plex
-        #   gethomepage.dev/name: plex
-        #   gethomepage.dev/widget.type: plex
-        #   gethomepage.dev/widget.key: "${HOMEPAGE_VAR_PLEX_TOKEN}"
-        #   gethomepage.dev/widget.url: "https://kingplex.${SECRET_DOMAIN}"
-        #   gethomepage.dev/siteMonitor: https://kingplex.${SECRET_DOMAIN}
+        annotations:
+          external-dns.alpha.kubernetes.io/target: "kingplex.${SECRET_DOMAIN}"
         hosts:
           - host: &host "kingplex.${SECRET_DOMAIN}"
             paths:
