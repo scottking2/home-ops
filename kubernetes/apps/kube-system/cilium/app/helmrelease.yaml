@@ -69,7 +69,7 @@ spec:
         rollOutPods: true
         ingress:
           enabled: true
-          className: external
+          className: internal
           hosts:
             - "hubble.${SECRET_DOMAIN}"
           tls:
