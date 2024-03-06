@@ -43,7 +43,7 @@ spec:
               TZ: America/Denver
               ADVERTISE_IP: "https://kingplex.${SECRET_DOMAIN}"
               ALLOWED_NETWORKS: "10.0.0.0/255.255.255.0"
-              HOSTNAME: plex.${SECRET_DOMAIN}
+              HOSTNAME: kingplex.${SECRET_DOMAIN}
             # resources:
             #   requests:
             #     gpu.intel.com/i915: 1
