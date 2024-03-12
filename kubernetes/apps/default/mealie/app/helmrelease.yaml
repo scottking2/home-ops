@@ -38,7 +38,7 @@ spec:
               pullPolicy: IfNotPresent
 
             env:
-              BASE_URL: https://mealie.${SECRET_DOMAIN}
+              BASE_URL: https://mealie.${SECRET_DOMAIN}/explore/recipes/home?orderBy=created_at
               ALLOW_SIGNUP: false
               API_DOCS: false
               TZ: America/Denver
