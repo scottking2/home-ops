@@ -38,7 +38,7 @@ spec:
               pullPolicy: IfNotPresent
 
             env:
-              BASE_URL: https://kingmealie.${SECRET_DOMAIN}
+              BASE_URL: https://mealie.${SECRET_DOMAIN}
               ALLOW_SIGNUP: false
               API_DOCS: false
               TZ: America/Denver
@@ -67,7 +67,7 @@ spec:
         annotations:
           external-dns.alpha.kubernetes.io/target: "external.${SECRET_DOMAIN}"
         hosts:
-          - host: "kingmealie.${SECRET_DOMAIN}"
+          - host: "mealie.${SECRET_DOMAIN}"
             paths:
               - path: /
                 pathType: Prefix
@@ -76,7 +76,7 @@ spec:
                   port: http
         tls:
           - hosts:
-              - "kingmealie.${SECRET_DOMAIN}"
+              - "mealie.${SECRET_DOMAIN}"
 
     persistence:
       data:
