@@ -20,7 +20,7 @@ spec:
       main:
         type: cronjob
         cronjob:
-          schedule: "*/2 * * * *"
+          schedule: "*/10 * * * *"
           concurrencyPolicy: Forbid
           failedJobsHistoryLimit: 1
           successfulJobsHistoryLimit: 1
