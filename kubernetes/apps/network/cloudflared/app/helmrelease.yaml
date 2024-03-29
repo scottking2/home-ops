@@ -85,7 +85,7 @@ spec:
             runAsNonRoot: true
     service:
       main:
-        controller: cloudflared
+        controller: main
         ports:
           http:
             port: *port
