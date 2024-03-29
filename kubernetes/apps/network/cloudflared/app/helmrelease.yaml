@@ -85,11 +85,13 @@ spec:
             runAsNonRoot: true
     service:
       main:
+        controller: main
         ports:
           http:
             port: *port
     serviceMonitor:
       main:
+        serviceName: cloudflared
         enabled: true
     persistence:
       config:

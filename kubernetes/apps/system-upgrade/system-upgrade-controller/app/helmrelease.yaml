@@ -77,8 +77,8 @@ spec:
       create: true
       name: system-upgrade
     service:
-      controller: main
       main:
+        controller: main
         enabled: false
     persistence:
       tmp:
