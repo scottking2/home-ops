@@ -22,9 +22,7 @@ spec:
         cronjob:
           schedule: "*/10 * * * *"
           concurrencyPolicy: Forbid
-          failedJobsHistoryLimit: 1
-          successfulJobsHistoryLimit: 1
-          suspend: false
+          suspend: true
         containers:
           main:
             image:
