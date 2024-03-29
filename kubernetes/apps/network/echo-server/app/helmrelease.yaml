@@ -68,6 +68,7 @@ spec:
             runAsGroup: 65534
             runAsNonRoot: true
     service:
+      controller: main
       main:
         ports:
           http:
