@@ -55,8 +55,8 @@ spec:
     #                memory: 128Mi
 
     service:
-      controller: main
       main:
+        controller: main
         ports:
           http:
             port: 9000
