@@ -85,14 +85,19 @@ spec:
             runAsNonRoot: true
     service:
       main:
-        controller: main
+        controller: cloudflared
         ports:
           http:
             port: *port
     serviceMonitor:
       main:
         serviceName: cloudflared
-        enabled: true
+        endpoints:
+          - port: http
+            scheme: http
+            path: /metrics
+            interval: 1m
+            scrapeTimeout: 10s
     persistence:
       config:
         enabled: true
