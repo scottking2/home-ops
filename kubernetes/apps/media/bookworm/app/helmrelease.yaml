@@ -33,6 +33,7 @@ spec:
 
     service:
       main:
+        controller: main
         enabled: false
 
     configMaps:

@@ -55,6 +55,7 @@ spec:
     #                memory: 128Mi
 
     service:
+      controller: main
       main:
         ports:
           http:
