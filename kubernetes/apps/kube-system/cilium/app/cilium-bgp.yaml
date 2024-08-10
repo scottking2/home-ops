@@ -9,10 +9,10 @@ spec:
     matchLabels:
       kubernetes.io/os: linux
   virtualRouters:
-    - localASN: 
+    - localASN:
       neighbors:
         - peerAddress: "10.0.0.1/32"
-          peerASN: 
+          peerASN:
       serviceSelector:
         matchExpressions:
           - {key: somekey, operator: NotIn, values: ['never-used-value']}
@@ -22,5 +22,5 @@ kind: CiliumLoadBalancerIPPool
 metadata:
   name: pool
 spec:
-  cidrs:
+  blocks:
     - cidr: "${LOADBALANCER_CIDR}"
