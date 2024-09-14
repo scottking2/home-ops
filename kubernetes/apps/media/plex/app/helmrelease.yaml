@@ -141,3 +141,4 @@ spec:
         path: ${SECRET_NFS_PATH}/pms/media
         globalMounts:
           - path: /media
+
