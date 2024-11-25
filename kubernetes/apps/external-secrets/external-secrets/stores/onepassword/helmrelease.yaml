@@ -119,11 +119,21 @@ spec:
           http:
             port: *apiPort
     ingress:
-      enabled: true
-      ingressClassName: internal
-      host: onepassword-connect.${SECRET_DOMAIN}
-      tls: true
-      secureBackends: true
+      main:
+        enabled: true
+        className: external
+        annotations:
+          external-dns.alpha.kubernetes.io/target: "external.${SECRET_DOMAIN}"
+        hosts:
+          - host: &host "onepassword-connect.${SECRET_DOMAIN}"
+            paths:
+              - path: /
+                service:
+                  identifier: main
+                  port: http
+        tls:
+          - hosts:
+              - *host
     persistence:
       config:
         type: emptyDir
