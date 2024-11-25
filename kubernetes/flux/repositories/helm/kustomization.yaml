@@ -14,3 +14,4 @@ resources:
   - ./rancher-latest.yaml
   - ./longhorn.yaml
   - ./csi-driver-nfs.yaml
+  - ./external-secrets.yaml
