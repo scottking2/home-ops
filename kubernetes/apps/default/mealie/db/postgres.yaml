@@ -4,7 +4,6 @@ apiVersion: postgresql.cnpg.io/v1
 kind: Cluster
 metadata:
   name: mealie-pg
-  namespace: db
   annotations:
     app.kubernetes.io/part-of: &app mealie
 spec:
@@ -32,8 +31,8 @@ spec:
       endpointURL: https://00debaf39f5e0979adb2e8dd12f41a20.r2.cloudflarestorage.com
       s3Credentials:
         accessKeyId:
-          name: cloudnative-pg-secret
+          name: mealie-pg-secret
           key: aws-access-key-id
         secretAccessKey:
-          name: cloudnative-pg-secret
+          name: mealie-pg-secret
           key: aws-secret-access-key

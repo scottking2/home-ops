@@ -28,7 +28,7 @@ metadata:
   name: &app mealie-pg
   namespace: flux-system
 spec:
-  targetNamespace: db
+  targetNamespace: mealie
   commonMetadata:
     labels:
       app.kubernetes.io/name: *app
