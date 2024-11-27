@@ -4,6 +4,7 @@ apiVersion: postgresql.cnpg.io/v1
 kind: Cluster
 metadata:
   name: mealie-pg
+  namespace: db
   annotations:
     app.kubernetes.io/part-of: &app mealie
 spec:
