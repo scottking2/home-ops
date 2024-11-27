@@ -1,0 +1,38 @@
+---
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/postgresql.cnpg.io/cluster_v1.json
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: mealie-pg
+  annotations:
+    app.kubernetes.io/part-of: &app mealie
+spec:
+  instances: 1
+  imageName: ghcr.io/cloudnative-pg/postgresql:16.6-2
+  primaryUpdateStrategy: unsupervised # let k8s handle upgrades
+  storage:
+    size: 10Gi
+    storageClass: longhorn
+  monitoring:
+    enablePodMonitor: true
+  # configured according to below link to allow customizing of initdb via Flux
+  # https://cloudnative-pg.io/documentation/1.20/bootstrap/#configure-the-application-database
+  bootstrap:
+    initdb:
+      database: *app
+      owner: *app
+  backup:
+    retentionPolicy: 30d
+    barmanObjectStore:
+      wal:
+        compression: bzip2
+        maxParallel: 8
+      destinationPath: s3://cloudnative-pg/
+      endpointURL: https://00debaf39f5e0979adb2e8dd12f41a20.r2.cloudflarestorage.com
+      s3Credentials:
+        accessKeyId:
+          name: cloudnative-pg-secret
+          key: AWS_SECRET_ACCESS_KEY_ID
+        secretAccessKey:
+          name: cloudnative-pg-secret
+          key: AWS_SECRET_ACCESS_KEY
