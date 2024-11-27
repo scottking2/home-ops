@@ -15,4 +15,4 @@ resources:
   - ./longhorn.yaml
   - ./csi-driver-nfs.yaml
   - ./external-secrets.yaml
-  - ./cloudnative-pg/ks.yaml
+  - ./cloudnative-pg.yaml
