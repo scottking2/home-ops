@@ -1,67 +1,76 @@
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/main/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
-  name: mealie
-  namespace: mealie
+  name: &app mealie
 spec:
   interval: 15m
   chart:
     spec:
       chart: app-template
       version: 3.5.1
-      interval: 15m
       sourceRef:
         kind: HelmRepository
         name: bjw-s
         namespace: flux-system
-  install:
-    remediation:
-      retries: 3
-  upgrade:
-    cleanupOnFail: true
-    remediation:
-      retries: 3
-  dependsOn:
-    - name: longhorn
-      namespace: longhorn-system
   values:
-    # https://github.com/bjw-s/helm-charts/blob/main/charts/library/common/values.yaml
     controllers:
-      main:
-        strategy: Recreate
+      *app :
+        type: statefulset
+        annotations:
+          reloader.stakater.com/auto: "true"
         containers:
-          main:
+          app:
             image:
               repository: ghcr.io/mealie-recipes/mealie
-              tag: v1.12.0
-              pullPolicy: IfNotPresent
-
+              tag: v2.2.0@sha256:ea53ca0e874cf30c3e6bbed35f5a01a029bafb602d050ddd584fdb7defdb6f8a
             env:
-              BASE_URL: https://mealie.${SECRET_DOMAIN}/explore/recipes/home?orderBy=created_at
-              ALLOW_SIGNUP: false
-              API_DOCS: false
               TZ: America/Denver
-              # Default Values
-              WORKERS_PER_CORE: 1
-              MAX_WORKERS: 1
-              WEB_CONCURRENCY: 1
-    #            resources:
-    #              limits:
-    #                cpu: 100m
-    #                memory: 128Mi
-    #              requests:
-    #                cpu: 100m
-    #                memory: 128Mi
+              BASE_URL: https://mealie.${SECRET_DOMAIN}
+              # PGID: ${APP_GID}
+              # PUID: ${APP_UID}
+              # AUTO_BACKUP_ENABLED: true
+              ALLOW_SIGNUP: false
+              # SMTP_HOST: smtp-relay.network.svc.cluster.local.
+              # SMTP_PORT: 2525
+              SMTP_FROM_NAME: Mealie
+              SMTP_FROM_EMAIL: mealie@${SECRET_DOMAIN}
+              SMTP_AUTH_STRATEGY: NONE
+              DB_ENGINE: postgres
+              POSTGRES_URL_OVERRIDE:
+                valueFrom:
+                  secretKeyRef:
+                    name: mealie-pg-secret
+                    key: uri
+            securityContext:
+              allowPrivilegeEscalation: false
+              readOnlyRootFilesystem: true
+              capabilities: { drop: ["ALL"] }
+            resources:
+              requests:
+                cpu: 100m
+                memory: 256Mi
+
+    # defaultPodOptions:
+    #   securityContext:
+    #     fsGroup: ${APP_GID}
+    #     fsGroupChangePolicy: OnRootMismatch
+    #     runAsGroup: ${APP_GID}
+    #     runAsNonRoot: true
+    #     runAsUser: ${APP_UID}
+    #     seccompProfile:
+    #       type: RuntimeDefault
 
     service:
-      main:
-        controller: main
+      *app :
+        controller: *app
         ports:
           http:
             port: 9000
 
     ingress:
-      main:
+      *app :
         enabled: true
         className: external
         annotations:
@@ -72,7 +81,7 @@ spec:
               - path: /
                 pathType: Prefix
                 service:
-                  identifier: main
+                  identifier: *app
                   port: http
         tls:
           - hosts:
@@ -80,6 +89,8 @@ spec:
 
     persistence:
       data:
-        enabled: true
-        type: persistentVolumeClaim
         existingClaim: mealie-pvc
+        globalMounts:
+          - path: /app/data
+      tmp:
+        type: emptyDir
