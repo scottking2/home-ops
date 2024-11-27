@@ -28,12 +28,12 @@ metadata:
   name: &app mealie-pg
   namespace: flux-system
 spec:
-  targetNamespace: mealie
+  targetNamespace: db
   commonMetadata:
     labels:
       app.kubernetes.io/name: *app
   dependsOn:
-    - name: external-dns
+    - name: cloudnative-pg
   path: ./kubernetes/apps/default/mealie/db
   prune: true
   sourceRef:
