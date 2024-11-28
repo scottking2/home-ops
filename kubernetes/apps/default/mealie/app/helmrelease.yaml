@@ -71,7 +71,7 @@ spec:
                 memory: 512Mi
 
     service:
-      app:
+      mealie:
         controller: mealie
         ports:
           http:
@@ -88,7 +88,7 @@ spec:
               - path: /
                 pathType: Prefix
                 service:
-                  identifier: *app
+                  identifier: mealie
                   port: http
         tls:
           - hosts:
