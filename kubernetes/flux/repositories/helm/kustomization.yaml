@@ -16,3 +16,4 @@ resources:
   - ./csi-driver-nfs.yaml
   - ./external-secrets.yaml
   - ./cloudnative-pg.yaml
+  - ./emqx.yaml
