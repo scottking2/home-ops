@@ -1,86 +1,83 @@
 ---
-# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/main/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/main/charts/other/app-template/schemas/helmrelease-helm-v2beta2.schema.json
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
   name: &app mealie
 spec:
-  interval: 15m
+  interval: 30m
   chart:
     spec:
       chart: app-template
       version: 3.5.1
+      interval: 30m
       sourceRef:
         kind: HelmRepository
         name: bjw-s
         namespace: flux-system
+
+  install:
+    createNamespace: false
+    remediation:
+      retries: 5
+  upgrade:
+    remediation:
+      retries: 5
+
   values:
     controllers:
-      *app :
-        type: statefulset
+      mealie:
+        strategy: Recreate
         annotations:
           reloader.stakater.com/auto: "true"
+
+        pod:
+          enableServiceLinks: false
+
         initContainers:
           init-db:
             image:
               repository: ghcr.io/onedr0p/postgres-init
-              # tag: 16.2
-            envFrom: &envFrom
+              tag: "16.6"
+              pullPolicy: IfNotPresent
+            envFrom:
               - secretRef:
-                  name: mealie-pg-secret
+                  name: mealie-init-db
+
         containers:
           app:
             image:
               repository: ghcr.io/mealie-recipes/mealie
-              tag: v2.2.0@sha256:ea53ca0e874cf30c3e6bbed35f5a01a029bafb602d050ddd584fdb7defdb6f8a
+              tag: v2.2.0
+              pullPolicy: IfNotPresent
+
             env:
               TZ: America/Denver
               BASE_URL: https://mealie.${SECRET_DOMAIN}
-              PUID: 65534
-              PGID: 65534
-              # AUTO_BACKUP_ENABLED: true
-              ALLOW_SIGNUP: false
-              # SMTP_HOST: smtp-relay.network.svc.cluster.local.
-              # SMTP_PORT: 2525
-              SMTP_FROM_NAME: Mealie
-              SMTP_FROM_EMAIL: mealie@${SECRET_DOMAIN}
-              SMTP_AUTH_STRATEGY: NONE
+              ALLOW_SIGNUP: "false"
+              API_DOCS: false
+              API_PORT: "9000"
               DB_ENGINE: postgres
-              POSTGRES_SERVER: mealie-pg-rw.mealie.svc.cluster.local
-              # POSTGRES_URL_OVERRIDE:
-              #   valueFrom:
-              #     secretKeyRef:
-              #       name: mealie-pg-secret
-              #       key: uri
-            envFrom: *envFrom
-            securityContext:
-              allowPrivilegeEscalation: false
-              readOnlyRootFilesystem: true
-              capabilities: { drop: ["ALL"] }
+              PUID: 1000
+              PGID: 1000
+            envFrom:
+              - secretRef:
+                  name: mealie-secret
             resources:
               requests:
-                cpu: 100m
+                cpu: 5m
                 memory: 256Mi
-
-    defaultPodOptions:
-      securityContext:
-        runAsNonRoot: true
-        runAsUser: 65534
-        runAsGroup: 65534
-        fsGroup: 65534
-        fsGroupChangePolicy: OnRootMismatch
-        seccompProfile: { type: RuntimeDefault }
-
+              limits:
+                memory: 512Mi
 
     service:
-      *app :
-        controller: *app
+      app:
+        controller: mealie
         ports:
           http:
             port: 9000
-
     ingress:
-      *app :
+      mealie:
         enabled: true
         className: external
         annotations:
@@ -100,7 +97,9 @@ spec:
     persistence:
       data:
         existingClaim: mealie-pvc
-        globalMounts:
-          - path: /app/data
+        advancedMounts:
+          mealie:
+            app:
+              - path: /app/data
       tmp:
         type: emptyDir
