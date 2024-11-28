@@ -16,7 +16,7 @@ spec:
   prune: true
   sourceRef:
     kind: GitRepository
-    name: k8s-gitops-kubernetes
+    name: home-kubernetes
   wait: true
   dependsOn:
     - name: cert-manager
@@ -38,7 +38,7 @@ spec:
   prune: true
   sourceRef:
     kind: GitRepository
-    name: k8s-gitops-kubernetes
+    name: home-kubernetes
   wait: true
   dependsOn:
     - name: emqx-operator
