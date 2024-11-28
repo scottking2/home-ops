@@ -60,6 +60,12 @@ spec:
               DB_ENGINE: postgres
               PUID: 1000
               PGID: 1000
+              OPENAI_ENABLE_IMAGE_SERVICES: False
+              OPENAI_API_KEY:
+                valueFrom:
+                  secretKeyRef:
+                    name: mealie-openai-secrret
+                    key: OPENAI_API_KEY
             envFrom:
               - secretRef:
                   name: mealie-secret
