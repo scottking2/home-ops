@@ -38,11 +38,12 @@ spec:
               SMTP_FROM_EMAIL: mealie@${SECRET_DOMAIN}
               SMTP_AUTH_STRATEGY: NONE
               DB_ENGINE: postgres
-              POSTGRES_URL_OVERRIDE:
-                valueFrom:
-                  secretKeyRef:
-                    name: mealie-pg-secret
-                    key: uri
+              POSTGRES_SERVER: mealie-pg-rw.mealie.svc.cluster.local
+              # POSTGRES_URL_OVERRIDE:
+              #   valueFrom:
+              #     secretKeyRef:
+              #       name: mealie-pg-secret
+              #       key: uri
             securityContext:
               allowPrivilegeEscalation: false
               readOnlyRootFilesystem: true
