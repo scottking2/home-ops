@@ -45,8 +45,8 @@ spec:
               tag: 1.32.0
             env:
               TZ: "America/Denver"
-              DISABLE_MQTT: "false"
-              MQTT_HOST: "emqx-listeners.db.svc.cluster.local"
+              DISABLE_MQTT: "true"
+              # MQTT_HOST: "emqx-listeners.db.svc.cluster.local"
             envFrom: *envFrom
 
     service:
