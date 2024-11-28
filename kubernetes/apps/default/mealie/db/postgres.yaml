@@ -31,8 +31,8 @@ spec:
       endpointURL: https://00debaf39f5e0979adb2e8dd12f41a20.r2.cloudflarestorage.com
       s3Credentials:
         accessKeyId:
-          name: mealie-pg-secret
+          name: mealie-pg-backup-secret
           key: aws-access-key-id
         secretAccessKey:
-          name: mealie-pg-secret
+          name: mealie-pg-backup-secret
           key: aws-secret-access-key

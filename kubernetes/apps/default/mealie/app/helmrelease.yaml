@@ -20,6 +20,14 @@ spec:
         type: statefulset
         annotations:
           reloader.stakater.com/auto: "true"
+        initContainers:
+          init-db:
+            image:
+              repository: ghcr.io/onedr0p/postgres-init
+              # tag: 16.2
+            envFrom: &envFrom
+              - secretRef:
+                  name: mealie-pg-secret
         containers:
           app:
             image:
@@ -44,6 +52,7 @@ spec:
               #     secretKeyRef:
               #       name: mealie-pg-secret
               #       key: uri
+            envFrom: *envFrom
             securityContext:
               allowPrivilegeEscalation: false
               readOnlyRootFilesystem: true
