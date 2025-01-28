@@ -53,6 +53,15 @@ spec:
             #     gpu.intel.com/i915: 1
             #     memory: 10Gi
         pod:
+          affinity:
+            nodeAffinity:
+              requiredDuringSchedulingIgnoredDuringExecution:
+                nodeSelectorTerms:
+                  - matchExpressions:
+                      - key: kubernetes.io/hostname
+                        operator: In
+                        values:
+                          - "k8s-1"
           # nodeSelector:
           #   intel.feature.node.kubernetes.io/gpu: "true"
           #   kubernetes.io/hostname: "nuc11"
