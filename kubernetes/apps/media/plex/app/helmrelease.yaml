@@ -37,7 +37,7 @@ spec:
           main:
             image:
               repository: ghcr.io/onedr0p/plex
-              tag: 1.41.3.9314-a0bfb8370@sha256:38fcbef239341db591f8ff87f20777d9a783b79f757fc42e360041d7ba78eada
+              tag: 1.41.5.9522-a96edc606@sha256:98a2883445f4901ec816b8dc4d684f94b4a6a21663cf6bde218f274a8c4ef289
             env:
               # See https://support.plex.tv/articles/201105343-advanced-hidden-server-settings/
               TZ: America/Denver
