@@ -124,6 +124,11 @@ spec:
         className: external
         annotations:
           external-dns.alpha.kubernetes.io/target: "external.${SECRET_DOMAIN}"
+          nginx.ingress.kubernetes.io/proxy-body-size: "0"
+          nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
+          nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
+          nginx.ingress.kubernetes.io/send-timeout: "3600"
+          nginx.ingress.kubernetes.io/proxy-buffering: "off"
         hosts:
           - host: &host "plex.${SECRET_DOMAIN}"
             paths:
