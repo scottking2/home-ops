@@ -18,6 +18,12 @@ spec:
     parameters:
       max_connections: "250"
       shared_buffers: 128MB
+      # Aggressive optimization to get under 1M requests/month
+      archive_timeout: "3600"  # Archive WAL every 60 minutes (vs default 5 min)
+      checkpoint_timeout: "30min"  # Checkpoints every 30 minutes
+      max_wal_size: "4GB"  # Allow much more WAL before forcing checkpoint
+      min_wal_size: "2GB"  # Keep more WAL locally
+      wal_keep_size: "512MB"  # Keep 512MB of WAL locally always
   resources:
     requests:
       cpu: 500m
@@ -30,9 +36,11 @@ spec:
     barmanObjectStore: &barmanObjectStore
       data:
         compression: bzip2
+        jobs: 1  # Limit parallel backup jobs
       wal:
         compression: bzip2
-        maxParallel: 8
+        maxParallel: 1  # CRITICAL: Reduced from 8 (87.5% reduction)
+        retentionPolicy: "7d"  # Only keep 7 days of WAL in R2
       destinationPath: s3://cloudnative-pg/
       endpointURL: https://00debaf39f5e0979adb2e8dd12f41a20.r2.cloudflarestorage.com
       # Note: serverName version needs to be incremented
