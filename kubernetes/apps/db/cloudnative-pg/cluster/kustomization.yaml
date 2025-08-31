@@ -6,6 +6,6 @@ namespace: db
 resources:
   - ./cluster.yaml
   - ./gatus.yaml
-  - ./scheduledbackup.yaml  # Enable scheduled backups for regular full backups
+  # - ./scheduledbackup.yaml  # Disabled to prevent CloudFlare R2 costs
   # - ./prometheusrule.yaml
   - ./service.yaml
