@@ -40,7 +40,6 @@ spec:
       wal:
         compression: bzip2
         maxParallel: 1  # CRITICAL: Reduced from 8 (87.5% reduction)
-        retentionPolicy: "7d"  # Only keep 7 days of WAL in R2
       destinationPath: s3://cloudnative-pg/
       endpointURL: https://00debaf39f5e0979adb2e8dd12f41a20.r2.cloudflarestorage.com
       # Note: serverName version needs to be incremented
