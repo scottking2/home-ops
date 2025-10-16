@@ -41,7 +41,7 @@ spec:
             env:
               # See https://support.plex.tv/articles/201105343-advanced-hidden-server-settings/
               TZ: America/Denver
-              ADVERTISE_IP: "https://plex.${SECRET_DOMAIN},http://10.0.0.233:32400"
+              ADVERTISE_IP: "https://plex.${SECRET_DOMAIN},https://10.0.0.233:32400,https://10.0.0.231:32400"
               ALLOWED_NETWORKS: "10.0.0.0/24"
               HOSTNAME: plex.${SECRET_DOMAIN}
             # resources:
