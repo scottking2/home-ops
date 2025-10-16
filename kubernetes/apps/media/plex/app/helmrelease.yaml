@@ -139,6 +139,25 @@ spec:
         tls:
           - hosts:
               - *host
+      internal:
+        enabled: true
+        className: internal
+        annotations:
+          nginx.ingress.kubernetes.io/proxy-body-size: "0"
+          nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
+          nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
+          nginx.ingress.kubernetes.io/send-timeout: "3600"
+          nginx.ingress.kubernetes.io/proxy-buffering: "off"
+        hosts:
+          - host: *host
+            paths:
+              - path: /
+                service:
+                  identifier: main
+                  port: http
+        tls:
+          - hosts:
+              - *host
     persistence:
       config:
         enabled: true
