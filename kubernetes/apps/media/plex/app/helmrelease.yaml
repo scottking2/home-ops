@@ -148,6 +148,7 @@ spec:
           nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
           nginx.ingress.kubernetes.io/send-timeout: "3600"
           nginx.ingress.kubernetes.io/proxy-buffering: "off"
+          nginx.ingress.kubernetes.io/ssl-passthrough: "true"
         hosts:
           - host: *host
             paths:
