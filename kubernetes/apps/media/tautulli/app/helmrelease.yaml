@@ -41,9 +41,9 @@ spec:
             env:
               TZ: America/Denver
               TAUTULLI_HTTP_PORT: &port 8181
-            # envFrom:
-            #   - secretRef:
-            #       name: tautulli-secret
+            envFrom:
+              - secretRef:
+                  name: tautulli-secret
             probes:
               liveness: &probes
                 enabled: true
