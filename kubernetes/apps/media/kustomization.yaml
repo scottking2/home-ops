@@ -5,3 +5,4 @@ resources:
   - ./namespace.yaml
   - ./plex/ks.yaml
   - ./bookworm/ks.yaml
+  - ./tautulli/ks.yaml
