@@ -42,6 +42,8 @@ spec:
       concurrentAutomaticEngineUpgradePerNodeLimit: 3
       nodeDownPodDeletionPolicy: delete-both-statefulset-and-deployment-pod
       kubeletRootDir: /var/lib/rancher/k3s/agent/kubelet
+      backupTarget: nfs://${SECRET_NFS_SERVER}:/volume2/longhorn-backups
+      backupTargetCredentialSecret: ""
     ingress:
       enabled: true
       ingressClassName: internal
