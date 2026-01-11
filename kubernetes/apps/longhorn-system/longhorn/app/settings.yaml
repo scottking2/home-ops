@@ -1,0 +1,14 @@
+---
+apiVersion: longhorn.io/v1beta2
+kind: Setting
+metadata:
+  name: backup-target
+  namespace: longhorn-system
+value: "nfs://${SECRET_NFS_SERVER}:/volume2/longhorn-backups"
+---
+apiVersion: longhorn.io/v1beta2
+kind: Setting
+metadata:
+  name: backup-target-credential-secret
+  namespace: longhorn-system
+value: ""
