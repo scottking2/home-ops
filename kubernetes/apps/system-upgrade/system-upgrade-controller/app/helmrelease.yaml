@@ -73,8 +73,6 @@ spec:
             - key: node-role.kubernetes.io/master
               operator: Exists
               effect: NoSchedule
-    serviceAccount:
-      system-upgrade: {}
     service:
       main:
         controller: main
