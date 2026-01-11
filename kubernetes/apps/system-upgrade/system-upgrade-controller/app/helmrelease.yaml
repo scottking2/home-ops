@@ -74,8 +74,8 @@ spec:
               operator: Exists
               effect: NoSchedule
     serviceAccount:
-      create: true
-      name: system-upgrade
+      system-upgrade:
+        create: true
     service:
       main:
         controller: main
