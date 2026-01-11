@@ -41,6 +41,7 @@ spec:
       orphanAutoDeletion: true
       concurrentAutomaticEngineUpgradePerNodeLimit: 3
       nodeDownPodDeletionPolicy: delete-both-statefulset-and-deployment-pod
+      kubeletRootDir: /var/lib/rancher/k3s/agent/kubelet
     ingress:
       enabled: true
       ingressClassName: internal
