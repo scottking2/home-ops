@@ -5,3 +5,68 @@ resources:
   - ./helmrelease.yaml
   - ./certificate.yaml
   - ./backuptarget.yaml
+  - ./recurringjobs.yaml
+patches:
+  - target:
+      kind: Volume
+      name: pvc-8c57809a-deb4-4178-a61e-dcc1169ef817
+    patch: |-
+      - op: add
+        path: /spec/recurringJobSelector
+        value:
+          - name: backup-postgres-daily
+            isGroup: false
+  - target:
+      kind: Volume
+      name: pvc-ff67dc9d-c072-41d5-9e7b-2f7b8289019d
+    patch: |-
+      - op: add
+        path: /spec/recurringJobSelector
+        value:
+          - name: backup-postgres-daily
+            isGroup: false
+  - target:
+      kind: Volume
+      name: pvc-08bd24ae-a871-42fb-a89d-d734e2ecdb6e
+    patch: |-
+      - op: add
+        path: /spec/recurringJobSelector
+        value:
+          - name: backup-postgres-daily
+            isGroup: false
+  - target:
+      kind: Volume
+      name: pvc-befd202e-7083-4909-a6e1-77f6c7e9bc97
+    patch: |-
+      - op: add
+        path: /spec/recurringJobSelector
+        value:
+          - name: backup-apps-daily
+            isGroup: false
+  - target:
+      kind: Volume
+      name: pvc-1951e601-a1ee-4615-ac8d-2be29104840b
+    patch: |-
+      - op: add
+        path: /spec/recurringJobSelector
+        value:
+          - name: backup-media-weekly
+            isGroup: false
+  - target:
+      kind: Volume
+      name: pvc-332a1908-5cb2-4f23-a599-b49a858a0a0e
+    patch: |-
+      - op: add
+        path: /spec/recurringJobSelector
+        value:
+          - name: backup-media-weekly
+            isGroup: false
+  - target:
+      kind: Volume
+      name: plex-pv
+    patch: |-
+      - op: add
+        path: /spec/recurringJobSelector
+        value:
+          - name: backup-media-weekly
+            isGroup: false

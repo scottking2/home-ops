@@ -1,0 +1,54 @@
+---
+# Daily backup job for PostgreSQL databases (critical data)
+apiVersion: longhorn.io/v1beta2
+kind: RecurringJob
+metadata:
+  name: backup-postgres-daily
+  namespace: longhorn-system
+spec:
+  name: backup-postgres-daily
+  task: backup
+  cron: "0 2 * * *"  # 2 AM daily
+  retain: 7  # Keep 7 daily backups
+  concurrency: 2
+  backupTarget: longhorn-backups
+  labels:
+    type: backup
+    schedule: daily
+    app: postgres
+---
+# Daily backup job for application data
+apiVersion: longhorn.io/v1beta2
+kind: RecurringJob
+metadata:
+  name: backup-apps-daily
+  namespace: longhorn-system
+spec:
+  name: backup-apps-daily
+  task: backup
+  cron: "0 3 * * *"  # 3 AM daily
+  retain: 7  # Keep 7 daily backups
+  concurrency: 2
+  backupTarget: longhorn-backups
+  labels:
+    type: backup
+    schedule: daily
+    app: application
+---
+# Weekly backup job for media/large volumes
+apiVersion: longhorn.io/v1beta2
+kind: RecurringJob
+metadata:
+  name: backup-media-weekly
+  namespace: longhorn-system
+spec:
+  name: backup-media-weekly
+  task: backup
+  cron: "0 4 * * 0"  # 4 AM every Sunday
+  retain: 4  # Keep 4 weekly backups
+  concurrency: 1
+  backupTarget: longhorn-backups
+  labels:
+    type: backup
+    schedule: weekly
+    app: media
