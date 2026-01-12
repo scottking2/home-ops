@@ -1,0 +1,16 @@
+---
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: GitRepository
+metadata:
+  name: emqx-operator
+  namespace: flux-system
+spec:
+  interval: 30m
+  url: https://github.com/emqx/emqx-operator
+  ref:
+    tag: 2.2.29
+  ignore: |
+    # exclude all
+    /*
+    # include charts directory
+    !/deploy/charts/

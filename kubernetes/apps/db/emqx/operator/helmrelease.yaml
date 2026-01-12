@@ -8,11 +8,10 @@ spec:
   interval: 30m
   chart:
     spec:
-      chart: emqx-operator
-      version: 2.2.29
+      chart: ./deploy/charts/emqx-operator
       sourceRef:
-        kind: HelmRepository
-        name: emqx
+        kind: GitRepository
+        name: emqx-operator
         namespace: flux-system
       interval: 5m
   install:
