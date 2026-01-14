@@ -23,3 +23,10 @@ Brewfile.lock.json
 wiki
 # Bootstrap
 /config.yaml
+# Roo Commander
+.roo/
+.roomodes
+.ruru/
+roo-commander-v7.3.0-Wallaby/
+# Python virtual environment
+venv/

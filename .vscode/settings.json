@@ -23,5 +23,6 @@
         "vs-kubernetes.knownKubeconfigs": [
           "./kubeconfig"
       ]
-    }
+    },
+    "git.ignoreLimitWarning": true
 }
