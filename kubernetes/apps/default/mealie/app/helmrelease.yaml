@@ -62,6 +62,7 @@ spec:
               PUID: 1000
               PGID: 1000
               OPENAI_ENABLE_IMAGE_SERVICES: True
+              SMTP_FROM_NAME: Mealie
               OPENAI_API_KEY:
                 valueFrom:
                   secretKeyRef:
@@ -70,6 +71,8 @@ spec:
             envFrom:
               - secretRef:
                   name: mealie-secret
+              - secretRef:
+                  name: mealie-smtp
             resources:
               requests:
                 cpu: 100m
