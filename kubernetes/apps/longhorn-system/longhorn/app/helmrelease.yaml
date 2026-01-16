@@ -26,15 +26,15 @@ spec:
       retries: 3
   values:
     csi:
-      attacherReplicaCount: 3
-      provisionerReplicaCount: 3
-      resizerReplicaCount: 3
-      snapshotterReplicaCount: 3
+      attacherReplicaCount: 1
+      provisionerReplicaCount: 1
+      resizerReplicaCount: 1
+      snapshotterReplicaCount: 1
     persistence:
       defaultClass: true
       defaultClassReplicaCount: 3
     longhornUI:
-      replicas: 2
+      replicas: 1
     defaultSettings:
       defaultReplicaCount: 2
       defaultLonghornStaticStorageClass: longhorn
