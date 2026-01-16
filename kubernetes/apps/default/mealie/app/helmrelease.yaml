@@ -55,7 +55,7 @@ spec:
             env:
               TZ: America/Denver
               BASE_URL: https://mealie.${SECRET_DOMAIN}
-              ALLOW_SIGNUP: "false"
+              ALLOW_SIGNUP: "true"
               API_DOCS: false
               API_PORT: "9000"
               DB_ENGINE: postgres
