@@ -1,0 +1,49 @@
+---
+# For Synology NAS storage via NFS
+# You'll need to:
+# 1. Enable NFS on your Synology NAS
+# 2. Create a shared folder for Frigate recordings
+# 3. Update the NFS server IP and path below
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: frigate-media-nfs
+spec:
+  capacity:
+    storage: 4Ti  # Adjust based on your needs
+  accessModes:
+    - ReadWriteMany
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: nfs-frigate
+  mountOptions:
+    - nfsvers=4.1
+    - noatime
+    - nodiratime
+  nfs:
+    server: ${SECRET_NFS_SERVER}
+    path: /volume1/frigate  # ADJUST: Update path based on your NFS share
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: frigate-media
+spec:
+  accessModes:
+    - ReadWriteMany
+  storageClassName: nfs-frigate
+  resources:
+    requests:
+      storage: 4Ti  # Should match PV capacity
+---
+# Alternative: Use Longhorn for local storage (comment out above and uncomment below)
+# apiVersion: v1
+# kind: PersistentVolumeClaim
+# metadata:
+#   name: frigate-media
+# spec:
+#   accessModes:
+#     - ReadWriteOnce
+#   resources:
+#     requests:
+#       storage: 100Gi
+#   storageClassName: longhorn
