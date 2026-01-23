@@ -1,0 +1,130 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: frigate-config
+data:
+  config.yml: |
+    # Frigate Configuration
+    # This is a basic configuration - you'll need to add your cameras
+    
+    mqtt:
+      enabled: true
+      host: mosquitto.home-automation.svc.cluster.local
+      port: 1883
+      topic_prefix: frigate
+      client_id: frigate
+      stats_interval: 60
+    
+    # Detector Configuration
+    # For CPU detection (no Coral TPU)
+    # If you have a Coral TPU, uncomment and modify the detectors section
+    detectors:
+      cpu1:
+        type: cpu
+        num_threads: 3
+    
+    # detectors:
+    #   coral:
+    #     type: edgetpu
+    #     device: usb
+    
+    # Camera configuration template
+    # Add your cameras here following this pattern:
+    cameras:
+      # Example camera configuration - replace with your actual cameras
+      # front_door:
+      #   enabled: false  # Set to true when you add real camera
+      #   ffmpeg:
+      #     inputs:
+      #       - path: rtsp://username:password@camera-ip:554/stream1
+      #         roles:
+      #           - detect
+      #       - path: rtsp://username:password@camera-ip:554/stream0
+      #         roles:
+      #           - record
+      #   detect:
+      #     width: 1920
+      #     height: 1080
+      #     fps: 5
+      #   record:
+      #     enabled: true
+      #     retain:
+      #       days: 7
+      #       mode: motion
+      #     events:
+      #       retain:
+      #         default: 14
+      #         mode: active_objects
+      
+      # Dummy camera to prevent Frigate from failing to start
+      dummy_cam:
+        enabled: false
+        ffmpeg:
+          inputs:
+            - path: rtsp://127.0.0.1:554/dummy
+              roles:
+                - detect
+        detect:
+          enabled: false
+          width: 640
+          height: 480
+    
+    # Recording configuration
+    record:
+      enabled: true
+      retain:
+        days: 7
+        mode: all
+      events:
+        retain:
+          default: 14
+          mode: active_objects
+    
+    # Snapshots configuration
+    snapshots:
+      enabled: true
+      clean_copy: true
+      timestamp: false
+      bounding_box: true
+      retain:
+        default: 14
+    
+    # Object detection configuration
+    objects:
+      track:
+        - person
+        - dog
+        - cat
+        - car
+        - bicycle
+      filters:
+        person:
+          min_area: 5000
+          max_area: 100000
+          min_score: 0.5
+          threshold: 0.7
+    
+    # Motion detection configuration
+    motion:
+      threshold: 25
+      contour_area: 30
+      delta_alpha: 0.2
+      frame_alpha: 0.2
+      frame_height: 50
+      improve_contrast: false
+    
+    # Live stream configuration
+    live:
+      height: 720
+      quality: 8
+    
+    # UI configuration
+    ui:
+      timezone: America/Denver
+      use_experimental: false
+      live_mode: mse
+    
+    # Logging
+    logger:
+      default: info
