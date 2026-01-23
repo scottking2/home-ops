@@ -8,7 +8,7 @@ spec:
   interval: 30m
   url: https://github.com/emqx/emqx-operator
   ref:
-    tag: 2.2.29
+    tag: 2.3.0
   ignore: |
     # exclude all
     /*
