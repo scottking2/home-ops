@@ -32,6 +32,8 @@ spec:
     driver:
       existingConfigSecret: democratic-csi-driver-config
       configSecretKey: driver-config-file.yaml
+      config:
+        driver: synology-iscsi
 
     controller:
       enabled: true
