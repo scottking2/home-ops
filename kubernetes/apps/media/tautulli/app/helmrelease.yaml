@@ -115,12 +115,7 @@ spec:
               - *host
     persistence:
       config:
-        enabled: true
-        type: persistentVolumeClaim
-        accessMode: ReadWriteOnce
-        size: 5Gi
-        storageClass: longhorn
-        retain: true
+        existingClaim: tautulli-migrate
         globalMounts:
           - path: /config
       cache:
