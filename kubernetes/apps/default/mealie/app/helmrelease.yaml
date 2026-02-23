@@ -127,7 +127,7 @@ spec:
               - "mealie.${SECRET_DOMAIN}"
     persistence:
       data:
-        existingClaim: mealie-pvc
+        existingClaim: mealie-pvc-migrate
         advancedMounts:
           mealie:
             app:
