@@ -17,3 +17,4 @@ resources:
   - ./external-secrets.yaml
   - ./cloudnative-pg.yaml
   - ./emqx.yaml
+  - ./democratic-csi.yaml

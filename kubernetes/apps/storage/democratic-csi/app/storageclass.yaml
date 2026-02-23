@@ -1,0 +1,13 @@
+---
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: iscsi-csi
+  annotations:
+    storageclass.kubernetes.io/is-default-class: "false"
+provisioner: org.democratic-csi.synology-iscsi
+reclaimPolicy: Retain
+allowVolumeExpansion: true
+volumeBindingMode: Immediate
+parameters:
+  fsType: ext4
