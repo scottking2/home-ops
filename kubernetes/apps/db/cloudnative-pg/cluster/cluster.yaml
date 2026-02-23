@@ -10,7 +10,7 @@ spec:
   primaryUpdateStrategy: unsupervised
   storage:
     size: 20Gi
-    storageClass: longhorn
+    storageClass: iscsi-csi
   superuserSecret:
     name: cloudnative-pg-secret
   enableSuperuserAccess: true
@@ -31,6 +31,25 @@ spec:
       memory: 2Gi
   monitoring:
     enablePodMonitor: true
+  bootstrap:
+    recovery:
+      source: &clusterName postgres16-v8
+  externalClusters:
+    - name: *clusterName
+      barmanObjectStore:
+        destinationPath: s3://cloudnative-pg/
+        endpointURL: https://00debaf39f5e0979adb2e8dd12f41a20.r2.cloudflarestorage.com
+        serverName: postgres16-v8
+        s3Credentials:
+          accessKeyId:
+            name: cloudnative-pg-secret
+            key: aws-access-key-id
+          secretAccessKey:
+            name: cloudnative-pg-secret
+            key: aws-secret-access-key
+        wal:
+          compression: bzip2
+          maxParallel: 1
   backup:
     retentionPolicy: 30d
     barmanObjectStore:
@@ -42,7 +61,7 @@ spec:
         maxParallel: 1  # CRITICAL: Reduced from 8 (87.5% reduction)
       destinationPath: s3://cloudnative-pg/
       endpointURL: https://00debaf39f5e0979adb2e8dd12f41a20.r2.cloudflarestorage.com
-      serverName: postgres16-v8
+      serverName: postgres16-v9
       s3Credentials:
         accessKeyId:
           name: cloudnative-pg-secret
