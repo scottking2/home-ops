@@ -45,7 +45,7 @@ spec:
       externalResizer:
         enabled: true
       externalSnapshotter:
-        enabled: false
+        enabled: true
 
     node:
       hostPID: true

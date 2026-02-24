@@ -1,0 +1,59 @@
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: pvc-snapshot-weekly
+  namespace: storage
+spec:
+  schedule: "0 3 * * 0"  # Every Sunday at 3am
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      ttlSecondsAfterFinished: 86400
+      template:
+        spec:
+          serviceAccountName: pvc-snapshotter
+          restartPolicy: OnFailure
+          containers:
+            - name: snapshot
+              image: bitnami/kubectl:latest
+              command:
+                - /bin/sh
+                - -c
+                - |
+                  set -e
+                  TIMESTAMP=$(date +%Y%m%d-%H%M%S)
+                  # Snapshot targets: namespace/pvc-name
+                  TARGETS="mealie/mealie-pvc-migrate media/plex-pvc-migrate media/tautulli-migrate"
+                  for target in $TARGETS; do
+                    NS=$(echo "$target" | cut -d/ -f1)
+                    PVC=$(echo "$target" | cut -d/ -f2)
+                    SNAP_NAME="${PVC}-snap-${TIMESTAMP}"
+                    echo "Creating snapshot ${SNAP_NAME} for ${NS}/${PVC}"
+                    cat <<EOF | kubectl apply -f -
+                  apiVersion: snapshot.storage.k8s.io/v1
+                  kind: VolumeSnapshot
+                  metadata:
+                    name: ${SNAP_NAME}
+                    namespace: ${NS}
+                  spec:
+                    volumeSnapshotClassName: iscsi-csi-snapshots
+                    source:
+                      persistentVolumeClaimName: ${PVC}
+                  EOF
+                    echo "Snapshot ${SNAP_NAME} created"
+                  done
+                  # Cleanup old snapshots (keep last 4 per PVC)
+                  for target in $TARGETS; do
+                    NS=$(echo "$target" | cut -d/ -f1)
+                    PVC=$(echo "$target" | cut -d/ -f2)
+                    echo "Pruning old snapshots for ${NS}/${PVC}..."
+                    kubectl get volumesnapshot -n "$NS" --sort-by=.metadata.creationTimestamp \
+                      -o jsonpath="{range .items[*]}{.metadata.name}{'\n'}{end}" \
+                      | grep "^${PVC}-snap-" \
+                      | head -n -4 \
+                      | xargs -r -I{} kubectl delete volumesnapshot {} -n "$NS"
+                  done
+                  echo "All snapshots complete"
