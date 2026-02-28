@@ -57,7 +57,7 @@ spec:
             env:
               TZ: America/Denver
               DISABLE_MQTT: "false"
-              MQTT_HOST: emqx-listeners.db.svc.cluster.local
+              MQTT_HOST: mosquitto.home-automation.svc.cluster.local
               MQTT_PORT: "1883"
               MQTT_TLS: "false"
 
@@ -82,9 +82,9 @@ spec:
     ingress:
       teslamate:
         enabled: true
-        className: external
+        className: internal
         annotations:
-          external-dns.alpha.kubernetes.io/target: "external.${SECRET_DOMAIN}"
+          external-dns.alpha.kubernetes.io/target: "internal.${SECRET_DOMAIN}"
         hosts:
           - host: "teslamate.${SECRET_DOMAIN}"
             paths:

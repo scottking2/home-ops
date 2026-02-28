@@ -66,11 +66,9 @@ spec:
             port: 8123
     ingress:
       app:
-        className: nginx
+        className: internal
         annotations:
-          nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
-          nginx.ingress.kubernetes.io/proxy-body-size: "0"
-          nginx.ingress.kubernetes.io/proxy-buffering: "off"
+          external-dns.alpha.kubernetes.io/target: "internal.${SECRET_DOMAIN}"
         hosts:
           - host: &host "ha.${SECRET_DOMAIN}"
             paths:
@@ -86,10 +84,3 @@ spec:
         existingClaim: home-assistant-config
         globalMounts:
           - path: /config
-      usb:
-        type: hostPath
-        hostPath: /dev/bus/usb
-        hostPathType: Directory
-        globalMounts:
-          - path: /dev/bus/usb
-            readOnly: false

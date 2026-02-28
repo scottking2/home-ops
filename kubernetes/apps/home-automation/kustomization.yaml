@@ -4,7 +4,6 @@ kind: Kustomization
 resources:
   # Namespace is safe to create
   - ./namespace.yaml
-  # DISABLED FOR REVIEW - Uncomment when ready to deploy
-  # - ./mosquitto/ks.yaml
-  # - ./home-assistant/ks.yaml
+  - ./mosquitto/ks.yaml
+  - ./home-assistant/ks.yaml
   # - ./frigate/ks.yaml
