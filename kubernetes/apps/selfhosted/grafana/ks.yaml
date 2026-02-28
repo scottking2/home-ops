@@ -1,0 +1,22 @@
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: grafana
+  namespace: flux-system
+spec:
+  targetNamespace: selfhosted
+  commonMetadata:
+    labels:
+      app.kubernetes.io/name: grafana
+  interval: 30m
+  timeout: 5m
+  path: ./kubernetes/apps/selfhosted/grafana/app
+  prune: true
+  sourceRef:
+    kind: GitRepository
+    name: home-kubernetes
+  wait: false
+  dependsOn:
+    - name: external-secrets-stores
+    - name: cloudnative-pg-cluster

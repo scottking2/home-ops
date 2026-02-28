@@ -12,8 +12,7 @@ resources:
   - ./openebs.yaml
   - ./stakater.yaml
   - ./rancher-latest.yaml
-  - ./csi-driver-nfs.yaml
   - ./external-secrets.yaml
   - ./cloudnative-pg.yaml
-  - ./emqx.yaml
   - ./democratic-csi.yaml
+  - ./grafana.yaml

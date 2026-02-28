@@ -1,0 +1,195 @@
+---
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: grafana
+  namespace: selfhosted
+spec:
+  interval: 30m
+  chart:
+    spec:
+      chart: grafana
+      version: 8.12.1
+      sourceRef:
+        kind: HelmRepository
+        name: grafana
+        namespace: flux-system
+      interval: 30m
+  install:
+    createNamespace: false
+    remediation:
+      retries: 5
+  upgrade:
+    cleanupOnFail: true
+    remediation:
+      retries: 5
+  uninstall:
+    keepHistory: false
+  values:
+    replicas: 1
+
+    env:
+      GF_ANALYTICS_CHECK_FOR_UPDATES: "false"
+      GF_ANALYTICS_CHECK_FOR_PLUGIN_UPDATES: "false"
+      GF_ANALYTICS_REPORTING_ENABLED: "false"
+      GF_DATE_FORMATS_USE_BROWSER_LOCALE: "true"
+      GF_EXPLORE_ENABLED: "true"
+      GF_LOG_MODE: console
+      GF_SECURITY_COOKIE_SAMESITE: grafana
+      TZ: America/Denver
+
+    envFromSecrets:
+      - name: grafana-secret
+
+    envValueFrom:
+      GF_DATABASE_HOST:
+        secretKeyRef:
+          name: grafana-secret
+          key: GF_DATABASE_HOST
+
+    grafana.ini:
+      server:
+        root_url: "https://grafana.${SECRET_DOMAIN}"
+      auth.anonymous:
+        enabled: true
+        org_name: Main Org.
+        org_role: Viewer
+
+    datasources:
+      datasources.yaml:
+        apiVersion: 1
+        datasources:
+          - name: TeslaMate
+            type: postgres
+            uid: teslamate_postgres
+            url: "$__env{TESLAMATE_DB_HOST}:5432"
+            user: "$__env{TESLAMATE_DB_USER}"
+            isDefault: true
+            jsonData:
+              database: "$__env{TESLAMATE_DB_NAME}"
+              sslmode: disable
+              postgresVersion: 1600
+            secureJsonData:
+              password: "$__env{TESLAMATE_DB_PASS}"
+
+    dashboardProviders:
+      dashboardproviders.yaml:
+        apiVersion: 1
+        providers:
+          - name: teslamate
+            orgId: 1
+            folder: TeslaMate
+            type: file
+            disableDeletion: false
+            editable: true
+            options:
+              path: /var/lib/grafana/dashboards/teslamate
+          - name: teslamate-custom
+            orgId: 1
+            folder: TeslaMate Custom
+            type: file
+            disableDeletion: false
+            editable: true
+            options:
+              path: /var/lib/grafana/dashboards/teslamate-custom
+
+    dashboards:
+      teslamate:
+        battery-health:
+          url: https://raw.githubusercontent.com/teslamate-org/teslamate/master/grafana/dashboards/battery-health.json
+          datasource: TeslaMate
+        charge-level:
+          url: https://raw.githubusercontent.com/teslamate-org/teslamate/master/grafana/dashboards/charge-level.json
+          datasource: TeslaMate
+        charges:
+          url: https://raw.githubusercontent.com/teslamate-org/teslamate/master/grafana/dashboards/charges.json
+          datasource: TeslaMate
+        charging-stats:
+          url: https://raw.githubusercontent.com/teslamate-org/teslamate/master/grafana/dashboards/charging-stats.json
+          datasource: TeslaMate
+        drive-stats:
+          url: https://raw.githubusercontent.com/teslamate-org/teslamate/master/grafana/dashboards/drive-stats.json
+          datasource: TeslaMate
+        drives:
+          url: https://raw.githubusercontent.com/teslamate-org/teslamate/master/grafana/dashboards/drives.json
+          datasource: TeslaMate
+        efficiency:
+          url: https://raw.githubusercontent.com/teslamate-org/teslamate/master/grafana/dashboards/efficiency.json
+          datasource: TeslaMate
+        locations:
+          url: https://raw.githubusercontent.com/teslamate-org/teslamate/master/grafana/dashboards/locations.json
+          datasource: TeslaMate
+        mileage:
+          url: https://raw.githubusercontent.com/teslamate-org/teslamate/master/grafana/dashboards/mileage.json
+          datasource: TeslaMate
+        overview:
+          url: https://raw.githubusercontent.com/teslamate-org/teslamate/master/grafana/dashboards/overview.json
+          datasource: TeslaMate
+        projected-range:
+          url: https://raw.githubusercontent.com/teslamate-org/teslamate/master/grafana/dashboards/projected-range.json
+          datasource: TeslaMate
+        states:
+          url: https://raw.githubusercontent.com/teslamate-org/teslamate/master/grafana/dashboards/states.json
+          datasource: TeslaMate
+        statistics:
+          url: https://raw.githubusercontent.com/teslamate-org/teslamate/master/grafana/dashboards/statistics.json
+          datasource: TeslaMate
+        timeline:
+          url: https://raw.githubusercontent.com/teslamate-org/teslamate/master/grafana/dashboards/timeline.json
+          datasource: TeslaMate
+        trip:
+          url: https://raw.githubusercontent.com/teslamate-org/teslamate/master/grafana/dashboards/trip.json
+          datasource: TeslaMate
+        updates:
+          url: https://raw.githubusercontent.com/teslamate-org/teslamate/master/grafana/dashboards/updates.json
+          datasource: TeslaMate
+        vampire-drain:
+          url: https://raw.githubusercontent.com/teslamate-org/teslamate/master/grafana/dashboards/vampire-drain.json
+          datasource: TeslaMate
+        visited:
+          url: https://raw.githubusercontent.com/teslamate-org/teslamate/master/grafana/dashboards/visited.json
+          datasource: TeslaMate
+      teslamate-custom:
+        amortization-tracker:
+          url: https://raw.githubusercontent.com/jheredianet/Teslamate-CustomGrafanaDashboards/main/dashboards/AmortizationTracker.json
+          datasource: TeslaMate
+        charging-costs-stats:
+          url: https://raw.githubusercontent.com/jheredianet/Teslamate-CustomGrafanaDashboards/main/dashboards/ChargingCostsStats.json
+          datasource: TeslaMate
+        charging-curve-stats:
+          url: https://raw.githubusercontent.com/jheredianet/Teslamate-CustomGrafanaDashboards/main/dashboards/ChargingCurveStats.json
+          datasource: TeslaMate
+        continuous-trips:
+          url: https://raw.githubusercontent.com/jheredianet/Teslamate-CustomGrafanaDashboards/main/dashboards/ContinuousTrips.json
+          datasource: TeslaMate
+        current-charge-view:
+          url: https://raw.githubusercontent.com/jheredianet/Teslamate-CustomGrafanaDashboards/main/dashboards/CurrentChargeView.json
+          datasource: TeslaMate
+        current-drive-view:
+          url: https://raw.githubusercontent.com/jheredianet/Teslamate-CustomGrafanaDashboards/main/dashboards/CurrentDriveView.json
+          datasource: TeslaMate
+        dc-charging-curves:
+          url: https://raw.githubusercontent.com/jheredianet/Teslamate-CustomGrafanaDashboards/main/dashboards/DCChargingCurves.json
+          datasource: TeslaMate
+
+    persistence:
+      enabled: true
+      existingClaim: grafana-data
+
+    ingress:
+      enabled: true
+      ingressClassName: internal
+      annotations:
+        external-dns.alpha.kubernetes.io/target: "internal.${SECRET_DOMAIN}"
+      hosts:
+        - "grafana.${SECRET_DOMAIN}"
+      tls:
+        - hosts:
+            - "grafana.${SECRET_DOMAIN}"
+
+    resources:
+      requests:
+        cpu: 50m
+        memory: 128Mi
+      limits:
+        memory: 512Mi
