@@ -71,6 +71,18 @@ spec:
               postgresVersion: 1600
             secureJsonData:
               password: "$__env{TESLAMATE_DB_PASS}"
+          - name: TeslaMate Jan
+            type: postgres
+            uid: teslamate_jan_postgres
+            url: "$__env{TESLAMATE_DB_HOST}:5432"
+            user: "$__env{TESLAMATE_JAN_DB_USER}"
+            isDefault: false
+            jsonData:
+              database: "$__env{TESLAMATE_JAN_DB_NAME}"
+              sslmode: disable
+              postgresVersion: 1600
+            secureJsonData:
+              password: "$__env{TESLAMATE_JAN_DB_PASS}"
 
     dashboardProviders:
       dashboardproviders.yaml:
