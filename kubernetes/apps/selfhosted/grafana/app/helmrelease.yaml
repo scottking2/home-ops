@@ -177,55 +177,15 @@ spec:
       existingClaim: grafana-data
 
     ingress:
-      enabled: false
-
-    extraObjects:
-      - apiVersion: networking.k8s.io/v1
-        kind: Ingress
-        metadata:
-          name: grafana-internal
-          namespace: selfhosted
-          annotations:
-            external-dns.alpha.kubernetes.io/target: "internal.${SECRET_DOMAIN}"
-        spec:
-          ingressClassName: internal
-          hosts:
-            - host: &host "grafana.${SECRET_DOMAIN}"
-              http:
-                paths:
-                  - path: /
-                    pathType: Prefix
-                    backend:
-                      service:
-                        name: grafana
-                        port:
-                          number: 80
-          tls:
-            - hosts:
-                - *host
-      - apiVersion: networking.k8s.io/v1
-        kind: Ingress
-        metadata:
-          name: grafana-external
-          namespace: selfhosted
-          annotations:
-            external-dns.alpha.kubernetes.io/target: "external.${SECRET_DOMAIN}"
-        spec:
-          ingressClassName: external
-          hosts:
-            - host: &host2 "grafana.${SECRET_DOMAIN}"
-              http:
-                paths:
-                  - path: /
-                    pathType: Prefix
-                    backend:
-                      service:
-                        name: grafana
-                        port:
-                          number: 80
-          tls:
-            - hosts:
-                - *host2
+      enabled: true
+      ingressClassName: internal
+      annotations:
+        external-dns.alpha.kubernetes.io/target: "internal.${SECRET_DOMAIN}"
+      hosts:
+        - "grafana.${SECRET_DOMAIN}"
+      tls:
+        - hosts:
+            - "grafana.${SECRET_DOMAIN}"
 
     resources:
       requests:
