@@ -1,0 +1,115 @@
+---
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: teslamate-jan
+  namespace: selfhosted
+spec:
+  interval: 30m
+  chart:
+    spec:
+      chart: app-template
+      version: 4.6.2
+      sourceRef:
+        kind: HelmRepository
+        name: bjw-s
+        namespace: flux-system
+      interval: 30m
+
+  install:
+    createNamespace: false
+    remediation:
+      retries: 5
+  upgrade:
+    cleanupOnFail: true
+    remediation:
+      retries: 5
+  uninstall:
+    keepHistory: false
+
+  values:
+    controllers:
+      teslamate-jan:
+        strategy: Recreate
+        annotations:
+          reloader.stakater.com/auto: "true"
+
+        pod:
+          enableServiceLinks: false
+
+        initContainers:
+          init-db:
+            image:
+              repository: ghcr.io/home-operations/postgres-init
+              tag: "18.3"
+              pullPolicy: IfNotPresent
+            envFrom:
+              - secretRef:
+                  name: teslamate-jan-init-db
+
+        containers:
+          app:
+            image:
+              repository: teslamate/teslamate
+              tag: "2.2.0"
+              pullPolicy: IfNotPresent
+
+            env:
+              TZ: America/Denver
+              DISABLE_MQTT: "false"
+              MQTT_HOST: mosquitto.home-automation.svc.cluster.local
+              MQTT_PORT: "1883"
+              MQTT_TLS: "false"
+              MQTT_NAMESPACE: jan
+
+            envFrom:
+              - secretRef:
+                  name: teslamate-jan-secret
+
+            resources:
+              requests:
+                cpu: 50m
+                memory: 250Mi
+              limits:
+                memory: 512Mi
+
+    service:
+      teslamate-jan:
+        controller: teslamate-jan
+        ports:
+          http:
+            port: 4000
+
+    ingress:
+      internal:
+        enabled: true
+        className: internal
+        annotations:
+          external-dns.alpha.kubernetes.io/target: "internal.${SECRET_DOMAIN}"
+        hosts:
+          - host: "teslamate-jan.${SECRET_DOMAIN}"
+            paths:
+              - path: /
+                pathType: Prefix
+                service:
+                  identifier: teslamate-jan
+                  port: http
+        tls:
+          - hosts:
+              - "teslamate-jan.${SECRET_DOMAIN}"
+      external:
+        enabled: true
+        className: external
+        annotations:
+          external-dns.alpha.kubernetes.io/target: "external.${SECRET_DOMAIN}"
+        hosts:
+          - host: "teslamate-jan.${SECRET_DOMAIN}"
+            paths:
+              - path: /
+                pathType: Prefix
+                service:
+                  identifier: teslamate-jan
+                  port: http
+        tls:
+          - hosts:
+              - "teslamate-jan.${SECRET_DOMAIN}"
