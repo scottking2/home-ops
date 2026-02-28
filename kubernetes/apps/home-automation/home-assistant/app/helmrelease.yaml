@@ -26,6 +26,21 @@ spec:
       home-assistant:
         replicas: 1
         strategy: RollingUpdate
+        initContainers:
+          init-config:
+            image:
+              repository: busybox
+              tag: latest
+            command:
+              - sh
+              - -c
+              - |
+                if [ ! -f /config/configuration.yaml ]; then
+                  cp /config-base/configuration.yaml /config/configuration.yaml
+                  echo "Seeded configuration.yaml"
+                else
+                  echo "configuration.yaml already exists, skipping"
+                fi
         containers:
           app:
             image:
@@ -70,7 +85,7 @@ spec:
         annotations:
           external-dns.alpha.kubernetes.io/target: "internal.${SECRET_DOMAIN}"
         hosts:
-          - host: &host "ha.${SECRET_DOMAIN}"
+          - host: &host "home.${SECRET_DOMAIN}"
             paths:
               - path: /
                 service:
@@ -98,3 +113,10 @@ spec:
         existingClaim: home-assistant-config
         globalMounts:
           - path: /config
+      config-base:
+        type: configMap
+        name: home-assistant-config-base
+        globalMounts:
+          - path: /config-base/configuration.yaml
+            subPath: configuration.yaml
+            readOnly: true
