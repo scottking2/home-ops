@@ -6,6 +6,5 @@ resources:
   # Pre Flux-Kustomizations
   - ./namespace.yaml
   # Flux-Kustomizations
-  - ./csi-driver-nfs/ks.yaml
   - ./democratic-csi/ks.yaml
   - ./pvc-snapshots/ks.yaml
