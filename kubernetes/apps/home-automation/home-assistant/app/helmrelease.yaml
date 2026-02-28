@@ -39,7 +39,7 @@ spec:
                 custom: true
                 spec:
                   httpGet:
-                    path: /api/
+                    path: /manifest.json
                     port: 8123
                   initialDelaySeconds: 60
                   periodSeconds: 30
@@ -48,7 +48,7 @@ spec:
                 custom: true
                 spec:
                   httpGet:
-                    path: /api/
+                    path: /manifest.json
                     port: 8123
                   initialDelaySeconds: 30
                   periodSeconds: 30
