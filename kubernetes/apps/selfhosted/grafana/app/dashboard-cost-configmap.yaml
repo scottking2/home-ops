@@ -1,0 +1,355 @@
+apiVersion: v1
+data:
+  cost-overview.json: "{\n  \"uid\": \"cost-overview-sk\",\n  \"title\": \"Cost Overview\"\
+    ,\n  \"tags\": [\n    \"teslamate\",\n    \"cost\"\n  ],\n  \"timezone\": \"browser\"\
+    ,\n  \"schemaVersion\": 39,\n  \"version\": 1,\n  \"refresh\": \"1h\",\n  \"time\"\
+    : {\n    \"from\": \"now-1y\",\n    \"to\": \"now\"\n  },\n  \"templating\": {\n\
+    \    \"list\": [\n      {\n        \"name\": \"car_id\",\n        \"label\": \"\
+    Car\",\n        \"type\": \"query\",\n        \"datasource\": {\n          \"\
+    type\": \"postgres\",\n          \"uid\": \"teslamate_postgres\"\n        },\n\
+    \        \"query\": \"SELECT id as __value, COALESCE(name, RIGHT(vin,6)) as __text\
+    \ FROM cars ORDER BY display_priority ASC, name ASC, vin ASC;\",\n        \"refresh\"\
+    : 1,\n        \"includeAll\": false,\n        \"multi\": false,\n        \"sort\"\
+    : 0\n      }\n    ]\n  },\n  \"annotations\": {\n    \"list\": []\n  },\n  \"\
+    panels\": [\n    {\n      \"id\": 1,\n      \"title\": \"\\ud83d\\udcb0 Key Cost\
+    \ Metrics\",\n      \"type\": \"row\",\n      \"collapsed\": false,\n      \"\
+    gridPos\": {\n        \"x\": 0,\n        \"y\": 0,\n        \"w\": 24,\n     \
+    \   \"h\": 1\n      },\n      \"panels\": []\n    },\n    {\n      \"id\": 2,\n\
+    \      \"title\": \"Total Charging Cost\",\n      \"type\": \"stat\",\n      \"\
+    gridPos\": {\n        \"x\": 0,\n        \"y\": 1,\n        \"w\": 6,\n      \
+    \  \"h\": 4\n      },\n      \"fieldConfig\": {\n        \"defaults\": {\n   \
+    \       \"unit\": \"currencyUSD\",\n          \"decimals\": 2,\n          \"color\"\
+    : {\n            \"mode\": \"value\"\n          },\n          \"thresholds\":\
+    \ {\n            \"mode\": \"absolute\",\n            \"steps\": [\n         \
+    \     {\n                \"color\": \"green\",\n                \"value\": null\n\
+    \              }\n            ]\n          },\n          \"mappings\": []\n  \
+    \      },\n        \"overrides\": []\n      },\n      \"options\": {\n       \
+    \ \"reduceOptions\": {\n          \"calcs\": [\n            \"lastNotNull\"\n\
+    \          ],\n          \"fields\": \"\",\n          \"values\": false\n    \
+    \    },\n        \"orientation\": \"auto\",\n        \"textMode\": \"auto\",\n\
+    \        \"colorMode\": \"background\",\n        \"graphMode\": \"none\",\n  \
+    \      \"justifyMode\": \"auto\"\n      },\n      \"targets\": [\n        {\n\
+    \          \"datasource\": {\n            \"type\": \"postgres\",\n          \
+    \  \"uid\": \"teslamate_postgres\"\n          },\n          \"format\": \"table\"\
+    ,\n          \"rawSql\": \"SELECT COALESCE(SUM(cost), 0) FROM charging_processes\\\
+    n    WHERE car_id = $car_id AND $__timeFilter(end_date)\",\n          \"refId\"\
+    : \"A\"\n        }\n      ],\n      \"datasource\": {\n        \"type\": \"postgres\"\
+    ,\n        \"uid\": \"teslamate_postgres\"\n      }\n    },\n    {\n      \"id\"\
+    : 3,\n      \"title\": \"Cost This Month\",\n      \"type\": \"stat\",\n     \
+    \ \"gridPos\": {\n        \"x\": 6,\n        \"y\": 1,\n        \"w\": 6,\n  \
+    \      \"h\": 4\n      },\n      \"fieldConfig\": {\n        \"defaults\": {\n\
+    \          \"unit\": \"currencyUSD\",\n          \"decimals\": 2,\n          \"\
+    color\": {\n            \"mode\": \"value\"\n          },\n          \"thresholds\"\
+    : {\n            \"mode\": \"absolute\",\n            \"steps\": [\n         \
+    \     {\n                \"color\": \"green\",\n                \"value\": null\n\
+    \              }\n            ]\n          },\n          \"mappings\": []\n  \
+    \      },\n        \"overrides\": []\n      },\n      \"options\": {\n       \
+    \ \"reduceOptions\": {\n          \"calcs\": [\n            \"lastNotNull\"\n\
+    \          ],\n          \"fields\": \"\",\n          \"values\": false\n    \
+    \    },\n        \"orientation\": \"auto\",\n        \"textMode\": \"auto\",\n\
+    \        \"colorMode\": \"background\",\n        \"graphMode\": \"none\",\n  \
+    \      \"justifyMode\": \"auto\"\n      },\n      \"targets\": [\n        {\n\
+    \          \"datasource\": {\n            \"type\": \"postgres\",\n          \
+    \  \"uid\": \"teslamate_postgres\"\n          },\n          \"format\": \"table\"\
+    ,\n          \"rawSql\": \"SELECT COALESCE(SUM(cost), 0) FROM charging_processes\\\
+    n    WHERE car_id = $car_id\\n      AND date_trunc('month', end_date) = date_trunc('month',\
+    \ NOW())\",\n          \"refId\": \"A\"\n        }\n      ],\n      \"datasource\"\
+    : {\n        \"type\": \"postgres\",\n        \"uid\": \"teslamate_postgres\"\n\
+    \      }\n    },\n    {\n      \"id\": 4,\n      \"title\": \"\\u00d8 Cost per\
+    \ kWh\",\n      \"type\": \"stat\",\n      \"gridPos\": {\n        \"x\": 12,\n\
+    \        \"y\": 1,\n        \"w\": 6,\n        \"h\": 4\n      },\n      \"fieldConfig\"\
+    : {\n        \"defaults\": {\n          \"unit\": \"currencyUSD\",\n         \
+    \ \"decimals\": 4,\n          \"color\": {\n            \"mode\": \"value\"\n\
+    \          },\n          \"thresholds\": {\n            \"mode\": \"absolute\"\
+    ,\n            \"steps\": [\n              {\n                \"color\": \"green\"\
+    ,\n                \"value\": null\n              }\n            ]\n         \
+    \ },\n          \"mappings\": []\n        },\n        \"overrides\": []\n    \
+    \  },\n      \"options\": {\n        \"reduceOptions\": {\n          \"calcs\"\
+    : [\n            \"lastNotNull\"\n          ],\n          \"fields\": \"\",\n\
+    \          \"values\": false\n        },\n        \"orientation\": \"auto\",\n\
+    \        \"textMode\": \"auto\",\n        \"colorMode\": \"background\",\n   \
+    \     \"graphMode\": \"none\",\n        \"justifyMode\": \"auto\"\n      },\n\
+    \      \"targets\": [\n        {\n          \"datasource\": {\n            \"\
+    type\": \"postgres\",\n            \"uid\": \"teslamate_postgres\"\n         \
+    \ },\n          \"format\": \"table\",\n          \"rawSql\": \"SELECT COALESCE(SUM(cost)/NULLIF(SUM(charge_energy_added),0),\
+    \ 0)\\n    FROM charging_processes\\n    WHERE car_id = $car_id AND $__timeFilter(end_date)\
+    \ AND cost IS NOT NULL\",\n          \"refId\": \"A\"\n        }\n      ],\n \
+    \     \"datasource\": {\n        \"type\": \"postgres\",\n        \"uid\": \"\
+    teslamate_postgres\"\n      }\n    },\n    {\n      \"id\": 5,\n      \"title\"\
+    : \"\\u00d8 Cost per 100 Miles (Actual)\",\n      \"type\": \"stat\",\n      \"\
+    gridPos\": {\n        \"x\": 18,\n        \"y\": 1,\n        \"w\": 6,\n     \
+    \   \"h\": 4\n      },\n      \"fieldConfig\": {\n        \"defaults\": {\n  \
+    \        \"unit\": \"currencyUSD\",\n          \"decimals\": 2,\n          \"\
+    color\": {\n            \"mode\": \"value\"\n          },\n          \"thresholds\"\
+    : {\n            \"mode\": \"absolute\",\n            \"steps\": [\n         \
+    \     {\n                \"color\": \"green\",\n                \"value\": null\n\
+    \              }\n            ]\n          },\n          \"mappings\": []\n  \
+    \      },\n        \"overrides\": []\n      },\n      \"options\": {\n       \
+    \ \"reduceOptions\": {\n          \"calcs\": [\n            \"lastNotNull\"\n\
+    \          ],\n          \"fields\": \"\",\n          \"values\": false\n    \
+    \    },\n        \"orientation\": \"auto\",\n        \"textMode\": \"auto\",\n\
+    \        \"colorMode\": \"background\",\n        \"graphMode\": \"none\",\n  \
+    \      \"justifyMode\": \"auto\"\n      },\n      \"targets\": [\n        {\n\
+    \          \"datasource\": {\n            \"type\": \"postgres\",\n          \
+    \  \"uid\": \"teslamate_postgres\"\n          },\n          \"format\": \"table\"\
+    ,\n          \"rawSql\": \"WITH costs AS (\\n        SELECT COALESCE(SUM(cost),0)\
+    \ AS total_cost\\n        FROM charging_processes\\n        WHERE car_id = $car_id\
+    \ AND $__timeFilter(end_date) AND cost IS NOT NULL\\n    ),\\n    miles AS (\\\
+    n        SELECT COALESCE(SUM(distance)/1.60934, 1) AS total_miles\\n        FROM\
+    \ drives\\n        WHERE car_id = $car_id AND $__timeFilter(start_date)\\n   \
+    \ )\\n    SELECT total_cost / total_miles * 100 FROM costs, miles\",\n       \
+    \   \"refId\": \"A\"\n        }\n      ],\n      \"datasource\": {\n        \"\
+    type\": \"postgres\",\n        \"uid\": \"teslamate_postgres\"\n      }\n    },\n\
+    \    {\n      \"id\": 6,\n      \"title\": \"Total kWh Charged\",\n      \"type\"\
+    : \"stat\",\n      \"gridPos\": {\n        \"x\": 0,\n        \"y\": 5,\n    \
+    \    \"w\": 6,\n        \"h\": 4\n      },\n      \"fieldConfig\": {\n       \
+    \ \"defaults\": {\n          \"unit\": \"kwh\",\n          \"decimals\": 2,\n\
+    \          \"color\": {\n            \"mode\": \"value\"\n          },\n     \
+    \     \"thresholds\": {\n            \"mode\": \"absolute\",\n            \"steps\"\
+    : [\n              {\n                \"color\": \"green\",\n                \"\
+    value\": null\n              }\n            ]\n          },\n          \"mappings\"\
+    : []\n        },\n        \"overrides\": []\n      },\n      \"options\": {\n\
+    \        \"reduceOptions\": {\n          \"calcs\": [\n            \"lastNotNull\"\
+    \n          ],\n          \"fields\": \"\",\n          \"values\": false\n   \
+    \     },\n        \"orientation\": \"auto\",\n        \"textMode\": \"auto\",\n\
+    \        \"colorMode\": \"background\",\n        \"graphMode\": \"none\",\n  \
+    \      \"justifyMode\": \"auto\"\n      },\n      \"targets\": [\n        {\n\
+    \          \"datasource\": {\n            \"type\": \"postgres\",\n          \
+    \  \"uid\": \"teslamate_postgres\"\n          },\n          \"format\": \"table\"\
+    ,\n          \"rawSql\": \"SELECT COALESCE(SUM(charge_energy_added), 0) FROM charging_processes\\\
+    n    WHERE car_id = $car_id AND $__timeFilter(end_date)\",\n          \"refId\"\
+    : \"A\"\n        }\n      ],\n      \"datasource\": {\n        \"type\": \"postgres\"\
+    ,\n        \"uid\": \"teslamate_postgres\"\n      }\n    },\n    {\n      \"id\"\
+    : 7,\n      \"title\": \"Total Miles Driven\",\n      \"type\": \"stat\",\n  \
+    \    \"gridPos\": {\n        \"x\": 6,\n        \"y\": 5,\n        \"w\": 6,\n\
+    \        \"h\": 4\n      },\n      \"fieldConfig\": {\n        \"defaults\": {\n\
+    \          \"unit\": \"mi\",\n          \"decimals\": 0,\n          \"color\"\
+    : {\n            \"mode\": \"value\"\n          },\n          \"thresholds\":\
+    \ {\n            \"mode\": \"absolute\",\n            \"steps\": [\n         \
+    \     {\n                \"color\": \"green\",\n                \"value\": null\n\
+    \              }\n            ]\n          },\n          \"mappings\": []\n  \
+    \      },\n        \"overrides\": []\n      },\n      \"options\": {\n       \
+    \ \"reduceOptions\": {\n          \"calcs\": [\n            \"lastNotNull\"\n\
+    \          ],\n          \"fields\": \"\",\n          \"values\": false\n    \
+    \    },\n        \"orientation\": \"auto\",\n        \"textMode\": \"auto\",\n\
+    \        \"colorMode\": \"background\",\n        \"graphMode\": \"none\",\n  \
+    \      \"justifyMode\": \"auto\"\n      },\n      \"targets\": [\n        {\n\
+    \          \"datasource\": {\n            \"type\": \"postgres\",\n          \
+    \  \"uid\": \"teslamate_postgres\"\n          },\n          \"format\": \"table\"\
+    ,\n          \"rawSql\": \"SELECT COALESCE(SUM(distance)/1.60934, 0)::int FROM\
+    \ drives\\n    WHERE car_id = $car_id AND $__timeFilter(start_date)\",\n     \
+    \     \"refId\": \"A\"\n        }\n      ],\n      \"datasource\": {\n       \
+    \ \"type\": \"postgres\",\n        \"uid\": \"teslamate_postgres\"\n      }\n\
+    \    },\n    {\n      \"id\": 8,\n      \"title\": \"\\u00d8 kWh per 100 Miles\"\
+    ,\n      \"type\": \"stat\",\n      \"gridPos\": {\n        \"x\": 12,\n     \
+    \   \"y\": 5,\n        \"w\": 6,\n        \"h\": 4\n      },\n      \"fieldConfig\"\
+    : {\n        \"defaults\": {\n          \"unit\": \"kwh\",\n          \"decimals\"\
+    : 1,\n          \"color\": {\n            \"mode\": \"value\"\n          },\n\
+    \          \"thresholds\": {\n            \"mode\": \"absolute\",\n          \
+    \  \"steps\": [\n              {\n                \"color\": \"green\",\n    \
+    \            \"value\": null\n              }\n            ]\n          },\n \
+    \         \"mappings\": []\n        },\n        \"overrides\": []\n      },\n\
+    \      \"options\": {\n        \"reduceOptions\": {\n          \"calcs\": [\n\
+    \            \"lastNotNull\"\n          ],\n          \"fields\": \"\",\n    \
+    \      \"values\": false\n        },\n        \"orientation\": \"auto\",\n   \
+    \     \"textMode\": \"auto\",\n        \"colorMode\": \"background\",\n      \
+    \  \"graphMode\": \"none\",\n        \"justifyMode\": \"auto\"\n      },\n   \
+    \   \"targets\": [\n        {\n          \"datasource\": {\n            \"type\"\
+    : \"postgres\",\n            \"uid\": \"teslamate_postgres\"\n          },\n \
+    \         \"format\": \"table\",\n          \"rawSql\": \"WITH kwh AS (\\n   \
+    \     SELECT COALESCE(SUM(charge_energy_added),0) AS total_kwh\\n        FROM\
+    \ charging_processes\\n        WHERE car_id = $car_id AND $__timeFilter(end_date)\\\
+    n    ),\\n    miles AS (\\n        SELECT COALESCE(SUM(distance)/1.60934, 1) AS\
+    \ total_miles\\n        FROM drives WHERE car_id = $car_id AND $__timeFilter(start_date)\\\
+    n    )\\n    SELECT total_kwh / total_miles * 100 FROM kwh, miles\",\n       \
+    \   \"refId\": \"A\"\n        }\n      ],\n      \"datasource\": {\n        \"\
+    type\": \"postgres\",\n        \"uid\": \"teslamate_postgres\"\n      }\n    },\n\
+    \    {\n      \"id\": 9,\n      \"title\": \"AC vs DC Cost Split\",\n      \"\
+    type\": \"stat\",\n      \"gridPos\": {\n        \"x\": 18,\n        \"y\": 5,\n\
+    \        \"w\": 6,\n        \"h\": 4\n      },\n      \"fieldConfig\": {\n   \
+    \     \"defaults\": {\n          \"unit\": \"currencyUSD\",\n          \"decimals\"\
+    : 2,\n          \"color\": {\n            \"mode\": \"value\"\n          },\n\
+    \          \"thresholds\": {\n            \"mode\": \"absolute\",\n          \
+    \  \"steps\": [\n              {\n                \"color\": \"green\",\n    \
+    \            \"value\": null\n              }\n            ]\n          },\n \
+    \         \"mappings\": []\n        },\n        \"overrides\": []\n      },\n\
+    \      \"options\": {\n        \"reduceOptions\": {\n          \"calcs\": [\n\
+    \            \"lastNotNull\"\n          ],\n          \"fields\": \"\",\n    \
+    \      \"values\": false\n        },\n        \"orientation\": \"auto\",\n   \
+    \     \"textMode\": \"auto\",\n        \"colorMode\": \"background\",\n      \
+    \  \"graphMode\": \"none\",\n        \"justifyMode\": \"auto\"\n      },\n   \
+    \   \"targets\": [\n        {\n          \"datasource\": {\n            \"type\"\
+    : \"postgres\",\n            \"uid\": \"teslamate_postgres\"\n          },\n \
+    \         \"format\": \"table\",\n          \"rawSql\": \"WITH ac AS (\\n    \
+    \    SELECT COALESCE(SUM(cp.cost),0) as ac_cost\\n        FROM charging_processes\
+    \ cp\\n        JOIN charges c ON c.charging_process_id = cp.id\\n        WHERE\
+    \ cp.car_id = $car_id AND $__timeFilter(cp.end_date)\\n          AND c.fast_charger_present\
+    \ IS NOT true AND cp.cost IS NOT NULL\\n    ),\\n    dc AS (\\n        SELECT\
+    \ COALESCE(SUM(cp.cost),0) as dc_cost\\n        FROM charging_processes cp\\n\
+    \        JOIN charges c ON c.charging_process_id = cp.id\\n        WHERE cp.car_id\
+    \ = $car_id AND $__timeFilter(cp.end_date)\\n          AND c.fast_charger_present\
+    \ IS true AND cp.cost IS NOT NULL\\n    )\\n    SELECT ROUND(a.ac_cost,2) as \\\
+    \"AC (Home)\\\", ROUND(d.dc_cost,2) as \\\"DC (Fast)\\\"\\n    FROM ac a, dc d\"\
+    ,\n          \"refId\": \"A\"\n        }\n      ],\n      \"datasource\": {\n\
+    \        \"type\": \"postgres\",\n        \"uid\": \"teslamate_postgres\"\n  \
+    \    }\n    },\n    {\n      \"id\": 10,\n      \"title\": \"\\ud83d\\udcc8 Cost\
+    \ Trends Over Time\",\n      \"type\": \"row\",\n      \"collapsed\": false,\n\
+    \      \"gridPos\": {\n        \"x\": 0,\n        \"y\": 9,\n        \"w\": 24,\n\
+    \        \"h\": 1\n      },\n      \"panels\": []\n    },\n    {\n      \"id\"\
+    : 11,\n      \"title\": \"Monthly Charging Cost\",\n      \"type\": \"timeseries\"\
+    ,\n      \"gridPos\": {\n        \"x\": 0,\n        \"y\": 10,\n        \"w\"\
+    : 12,\n        \"h\": 8\n      },\n      \"fieldConfig\": {\n        \"defaults\"\
+    : {\n          \"unit\": \"currencyUSD\",\n          \"color\": {\n          \
+    \  \"mode\": \"palette-classic\"\n          },\n          \"custom\": {\n    \
+    \        \"drawStyle\": \"bars\",\n            \"lineWidth\": 2,\n           \
+    \ \"fillOpacity\": 10,\n            \"pointSize\": 5,\n            \"showPoints\"\
+    : \"auto\"\n          }\n        },\n        \"overrides\": []\n      },\n   \
+    \   \"options\": {\n        \"tooltip\": {\n          \"mode\": \"single\"\n \
+    \       },\n        \"legend\": {\n          \"displayMode\": \"list\",\n    \
+    \      \"placement\": \"bottom\"\n        }\n      },\n      \"targets\": [\n\
+    \        {\n          \"datasource\": {\n            \"type\": \"postgres\",\n\
+    \            \"uid\": \"teslamate_postgres\"\n          },\n          \"format\"\
+    : \"time_series\",\n          \"rawSql\": \"SELECT\\n        date_trunc('month',\
+    \ end_date) AS time,\\n        SUM(cost) AS \\\"Monthly Cost\\\"\\n    FROM charging_processes\\\
+    n    WHERE car_id = $car_id AND cost IS NOT NULL AND end_date IS NOT NULL\\n \
+    \   GROUP BY 1 ORDER BY 1\",\n          \"refId\": \"A\"\n        }\n      ],\n\
+    \      \"datasource\": {\n        \"type\": \"postgres\",\n        \"uid\": \"\
+    teslamate_postgres\"\n      }\n    },\n    {\n      \"id\": 12,\n      \"title\"\
+    : \"Cumulative Total Cost\",\n      \"type\": \"timeseries\",\n      \"gridPos\"\
+    : {\n        \"x\": 12,\n        \"y\": 10,\n        \"w\": 12,\n        \"h\"\
+    : 8\n      },\n      \"fieldConfig\": {\n        \"defaults\": {\n          \"\
+    unit\": \"currencyUSD\",\n          \"color\": {\n            \"mode\": \"palette-classic\"\
+    \n          },\n          \"custom\": {\n            \"drawStyle\": \"line\",\n\
+    \            \"lineWidth\": 2,\n            \"fillOpacity\": 20,\n           \
+    \ \"pointSize\": 5,\n            \"showPoints\": \"auto\"\n          }\n     \
+    \   },\n        \"overrides\": []\n      },\n      \"options\": {\n        \"\
+    tooltip\": {\n          \"mode\": \"single\"\n        },\n        \"legend\":\
+    \ {\n          \"displayMode\": \"list\",\n          \"placement\": \"bottom\"\
+    \n        }\n      },\n      \"targets\": [\n        {\n          \"datasource\"\
+    : {\n            \"type\": \"postgres\",\n            \"uid\": \"teslamate_postgres\"\
+    \n          },\n          \"format\": \"time_series\",\n          \"rawSql\":\
+    \ \"SELECT\\n        end_date AS time,\\n        SUM(cost) OVER (ORDER BY end_date)\
+    \ AS \\\"Cumulative Cost\\\"\\n    FROM charging_processes\\n    WHERE car_id\
+    \ = $car_id AND cost IS NOT NULL AND end_date IS NOT NULL\\n    ORDER BY end_date\"\
+    ,\n          \"refId\": \"A\"\n        }\n      ],\n      \"datasource\": {\n\
+    \        \"type\": \"postgres\",\n        \"uid\": \"teslamate_postgres\"\n  \
+    \    }\n    },\n    {\n      \"id\": 13,\n      \"title\": \"Cost per Charge Session\"\
+    ,\n      \"type\": \"timeseries\",\n      \"gridPos\": {\n        \"x\": 0,\n\
+    \        \"y\": 18,\n        \"w\": 12,\n        \"h\": 8\n      },\n      \"\
+    fieldConfig\": {\n        \"defaults\": {\n          \"unit\": \"currencyUSD\"\
+    ,\n          \"color\": {\n            \"mode\": \"palette-classic\"\n       \
+    \   },\n          \"custom\": {\n            \"drawStyle\": \"bars\",\n      \
+    \      \"lineWidth\": 2,\n            \"fillOpacity\": 10,\n            \"pointSize\"\
+    : 5,\n            \"showPoints\": \"auto\"\n          }\n        },\n        \"\
+    overrides\": []\n      },\n      \"options\": {\n        \"tooltip\": {\n    \
+    \      \"mode\": \"single\"\n        },\n        \"legend\": {\n          \"displayMode\"\
+    : \"list\",\n          \"placement\": \"bottom\"\n        }\n      },\n      \"\
+    targets\": [\n        {\n          \"datasource\": {\n            \"type\": \"\
+    postgres\",\n            \"uid\": \"teslamate_postgres\"\n          },\n     \
+    \     \"format\": \"time_series\",\n          \"rawSql\": \"SELECT\\n        end_date\
+    \ AS time,\\n        cost AS \\\"Session Cost\\\"\\n    FROM charging_processes\\\
+    n    WHERE car_id = $car_id AND cost IS NOT NULL AND end_date IS NOT NULL\\n \
+    \   ORDER BY end_date\",\n          \"refId\": \"A\"\n        }\n      ],\n  \
+    \    \"datasource\": {\n        \"type\": \"postgres\",\n        \"uid\": \"teslamate_postgres\"\
+    \n      }\n    },\n    {\n      \"id\": 14,\n      \"title\": \"Rolling Cost per\
+    \ kWh (30-day avg)\",\n      \"type\": \"timeseries\",\n      \"gridPos\": {\n\
+    \        \"x\": 12,\n        \"y\": 18,\n        \"w\": 12,\n        \"h\": 8\n\
+    \      },\n      \"fieldConfig\": {\n        \"defaults\": {\n          \"unit\"\
+    : \"currencyUSD\",\n          \"color\": {\n            \"mode\": \"palette-classic\"\
+    \n          },\n          \"custom\": {\n            \"drawStyle\": \"line\",\n\
+    \            \"lineWidth\": 2,\n            \"fillOpacity\": 10,\n           \
+    \ \"pointSize\": 5,\n            \"showPoints\": \"auto\"\n          }\n     \
+    \   },\n        \"overrides\": []\n      },\n      \"options\": {\n        \"\
+    tooltip\": {\n          \"mode\": \"single\"\n        },\n        \"legend\":\
+    \ {\n          \"displayMode\": \"list\",\n          \"placement\": \"bottom\"\
+    \n        }\n      },\n      \"targets\": [\n        {\n          \"datasource\"\
+    : {\n            \"type\": \"postgres\",\n            \"uid\": \"teslamate_postgres\"\
+    \n          },\n          \"format\": \"time_series\",\n          \"rawSql\":\
+    \ \"SELECT\\n        end_date AS time,\\n        AVG(cost/NULLIF(charge_energy_added,0))\
+    \ OVER (\\n            ORDER BY end_date ROWS BETWEEN 29 PRECEDING AND CURRENT\
+    \ ROW\\n        ) AS \\\"30-Day Avg $/kWh\\\"\\n    FROM charging_processes\\\
+    n    WHERE car_id = $car_id AND cost IS NOT NULL AND end_date IS NOT NULL\\n \
+    \   ORDER BY end_date\",\n          \"refId\": \"A\"\n        }\n      ],\n  \
+    \    \"datasource\": {\n        \"type\": \"postgres\",\n        \"uid\": \"teslamate_postgres\"\
+    \n      }\n    },\n    {\n      \"id\": 20,\n      \"title\": \"\\ud83d\\udccd\
+    \ Cost Breakdown\",\n      \"type\": \"row\",\n      \"collapsed\": false,\n \
+    \     \"gridPos\": {\n        \"x\": 0,\n        \"y\": 26,\n        \"w\": 24,\n\
+    \        \"h\": 1\n      },\n      \"panels\": []\n    },\n    {\n      \"id\"\
+    : 21,\n      \"title\": \"Cost by Charge Location\",\n      \"type\": \"barchart\"\
+    ,\n      \"gridPos\": {\n        \"x\": 0,\n        \"y\": 27,\n        \"w\"\
+    : 12,\n        \"h\": 8\n      },\n      \"fieldConfig\": {\n        \"defaults\"\
+    : {\n          \"unit\": \"currencyUSD\",\n          \"color\": {\n          \
+    \  \"mode\": \"palette-classic\"\n          },\n          \"custom\": {\n    \
+    \        \"lineWidth\": 1,\n            \"fillOpacity\": 80\n          }\n   \
+    \     },\n        \"overrides\": []\n      },\n      \"options\": {\n        \"\
+    orientation\": \"horizontal\",\n        \"xTickLabelRotation\": 0,\n        \"\
+    legend\": {\n          \"displayMode\": \"list\",\n          \"placement\": \"\
+    bottom\"\n        },\n        \"tooltip\": {\n          \"mode\": \"single\"\n\
+    \        }\n      },\n      \"targets\": [\n        {\n          \"datasource\"\
+    : {\n            \"type\": \"postgres\",\n            \"uid\": \"teslamate_postgres\"\
+    \n          },\n          \"format\": \"table\",\n          \"rawSql\": \"SELECT\\\
+    n        COALESCE(g.name,\\n            CONCAT_WS(', ', COALESCE(a.name, a.road),\
+    \ a.city),\\n            'Unknown') AS \\\"Location\\\",\\n        ROUND(SUM(cp.cost)::numeric,\
+    \ 2) AS \\\"Total Cost\\\"\\n    FROM charging_processes cp\\n    LEFT JOIN addresses\
+    \ a ON a.id = cp.address_id\\n    LEFT JOIN geofences g ON g.id = cp.geofence_id\\\
+    n    WHERE cp.car_id = $car_id AND $__timeFilter(cp.end_date) AND cp.cost IS NOT\
+    \ NULL\\n    GROUP BY 1 ORDER BY 2 DESC LIMIT 15\",\n          \"refId\": \"A\"\
+    \n        }\n      ],\n      \"datasource\": {\n        \"type\": \"postgres\"\
+    ,\n        \"uid\": \"teslamate_postgres\"\n      }\n    },\n    {\n      \"id\"\
+    : 22,\n      \"title\": \"Monthly kWh Charged\",\n      \"type\": \"barchart\"\
+    ,\n      \"gridPos\": {\n        \"x\": 12,\n        \"y\": 27,\n        \"w\"\
+    : 12,\n        \"h\": 8\n      },\n      \"fieldConfig\": {\n        \"defaults\"\
+    : {\n          \"unit\": \"kwh\",\n          \"color\": {\n            \"mode\"\
+    : \"palette-classic\"\n          },\n          \"custom\": {\n            \"lineWidth\"\
+    : 1,\n            \"fillOpacity\": 80\n          }\n        },\n        \"overrides\"\
+    : []\n      },\n      \"options\": {\n        \"orientation\": \"horizontal\"\
+    ,\n        \"xTickLabelRotation\": 0,\n        \"legend\": {\n          \"displayMode\"\
+    : \"list\",\n          \"placement\": \"bottom\"\n        },\n        \"tooltip\"\
+    : {\n          \"mode\": \"single\"\n        }\n      },\n      \"targets\": [\n\
+    \        {\n          \"datasource\": {\n            \"type\": \"postgres\",\n\
+    \            \"uid\": \"teslamate_postgres\"\n          },\n          \"format\"\
+    : \"table\",\n          \"rawSql\": \"SELECT\\n        date_trunc('month', end_date)\
+    \ AS \\\"Month\\\",\\n        ROUND(SUM(charge_energy_added)::numeric, 1) AS \\\
+    \"kWh\\\"\\n    FROM charging_processes\\n    WHERE car_id = $car_id AND end_date\
+    \ IS NOT NULL\\n    GROUP BY 1 ORDER BY 1\",\n          \"refId\": \"A\"\n   \
+    \     }\n      ],\n      \"datasource\": {\n        \"type\": \"postgres\",\n\
+    \        \"uid\": \"teslamate_postgres\"\n      }\n    },\n    {\n      \"id\"\
+    : 30,\n      \"title\": \"\\ud83d\\udd0b Charge Session Detail\",\n      \"type\"\
+    : \"row\",\n      \"collapsed\": false,\n      \"gridPos\": {\n        \"x\":\
+    \ 0,\n        \"y\": 35,\n        \"w\": 24,\n        \"h\": 1\n      },\n   \
+    \   \"panels\": []\n    },\n    {\n      \"id\": 31,\n      \"title\": \"All Charging\
+    \ Sessions with Cost\",\n      \"type\": \"table\",\n      \"gridPos\": {\n  \
+    \      \"x\": 0,\n        \"y\": 36,\n        \"w\": 24,\n        \"h\": 10\n\
+    \      },\n      \"fieldConfig\": {\n        \"defaults\": {\n          \"custom\"\
+    : {\n            \"filterable\": true\n          }\n        },\n        \"overrides\"\
+    : [\n          {\n            \"matcher\": {\n              \"id\": \"byName\"\
+    ,\n              \"options\": \"cost\"\n            },\n            \"properties\"\
+    : [\n              {\n                \"id\": \"unit\",\n                \"value\"\
+    : \"currencyUSD\"\n              }\n            ]\n          },\n          {\n\
+    \            \"matcher\": {\n              \"id\": \"byName\",\n             \
+    \ \"options\": \"kwh\"\n            },\n            \"properties\": [\n      \
+    \        {\n                \"id\": \"unit\",\n                \"value\": \"kwh\"\
+    \n              }\n            ]\n          }\n        ]\n      },\n      \"options\"\
+    : {\n        \"sortBy\": [\n          {\n            \"displayName\": \"date\"\
+    ,\n            \"desc\": true\n          }\n        ],\n        \"footer\": {\n\
+    \          \"show\": false\n        }\n      },\n      \"targets\": [\n      \
+    \  {\n          \"datasource\": {\n            \"type\": \"postgres\",\n     \
+    \       \"uid\": \"teslamate_postgres\"\n          },\n          \"format\": \"\
+    table\",\n          \"rawSql\": \"SELECT\\n        end_date AS \\\"date\\\",\\\
+    n        COALESCE(g.name,\\n            CONCAT_WS(', ', COALESCE(a.name, a.road),\
+    \ a.city),\\n            'Home') AS \\\"location\\\",\\n        ROUND(charge_energy_added::numeric,\
+    \ 2) AS \\\"kwh\\\",\\n        ROUND(cost::numeric, 2) AS \\\"cost\\\",\\n   \
+    \     ROUND((cost/NULLIF(charge_energy_added,0))::numeric, 4) AS \\\"$/kWh\\\"\
+    ,\\n        ROUND((duration_min/60.0)::numeric, 1) AS \\\"hours\\\"\\n    FROM\
+    \ charging_processes cp\\n    LEFT JOIN addresses a ON a.id = cp.address_id\\\
+    n    LEFT JOIN geofences g ON g.id = cp.geofence_id\\n    WHERE cp.car_id = $car_id\
+    \ AND $__timeFilter(end_date) AND cp.cost IS NOT NULL\\n    ORDER BY end_date\
+    \ DESC\",\n          \"refId\": \"A\"\n        }\n      ],\n      \"datasource\"\
+    : {\n        \"type\": \"postgres\",\n        \"uid\": \"teslamate_postgres\"\n\
+    \      }\n    }\n  ]\n}"
+kind: ConfigMap
+metadata:
+  labels:
+    grafana_dashboard: '1'
+  name: grafana-dashboard-cost-overview
+  namespace: selfhosted

@@ -7,3 +7,4 @@ resources:
   - ./externalsecret.yaml
   - ./helmrelease.yaml
   - ./ingress.yaml
+  - ./dashboard-cost-configmap.yaml
