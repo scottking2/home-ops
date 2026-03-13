@@ -26,6 +26,8 @@ spec:
     controllers:
       main:
         strategy: RollingUpdate
+        serviceAccount:
+          name: system-upgrade
         containers:
           main:
             image:
@@ -53,7 +55,6 @@ spec:
               seccompProfile:
                 type: RuntimeDefault
         pod:
-          serviceAccountName: system-upgrade
           securityContext:
             runAsUser: 65534
             runAsGroup: 65534
