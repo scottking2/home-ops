@@ -43,6 +43,8 @@ spec:
               repository: ghcr.io/home-operations/postgres-init
               tag: "18.3"
               pullPolicy: IfNotPresent
+            env:
+              INIT_POSTGRES_SUPER: "true"
             envFrom:
               - secretRef:
                   name: teslamate-royce-init-db
