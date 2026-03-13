@@ -5,4 +5,4 @@ resources:
   - ./namespace.yaml
   - ./teslamate/ks.yaml
   - ./grafana/ks.yaml
-  - ./teslamate-jan/ks.yaml
+  - ./teslamate-royce/ks.yaml
