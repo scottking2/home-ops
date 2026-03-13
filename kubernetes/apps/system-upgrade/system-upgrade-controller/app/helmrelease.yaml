@@ -53,6 +53,7 @@ spec:
               seccompProfile:
                 type: RuntimeDefault
         pod:
+          serviceAccountName: system-upgrade
           securityContext:
             runAsUser: 65534
             runAsGroup: 65534
