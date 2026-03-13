@@ -2,7 +2,7 @@
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
-  name: teslamate-jan
+  name: teslamate-royce
   namespace: selfhosted
 spec:
   interval: 30m
@@ -29,7 +29,7 @@ spec:
 
   values:
     controllers:
-      teslamate-jan:
+      teslamate-royce:
         strategy: Recreate
         annotations:
           reloader.stakater.com/auto: "true"
@@ -45,7 +45,7 @@ spec:
               pullPolicy: IfNotPresent
             envFrom:
               - secretRef:
-                  name: teslamate-jan-init-db
+                  name: teslamate-royce-init-db
 
         containers:
           app:
@@ -60,11 +60,11 @@ spec:
               MQTT_HOST: mosquitto.home-automation.svc.cluster.local
               MQTT_PORT: "1883"
               MQTT_TLS: "false"
-              MQTT_NAMESPACE: jan
+              MQTT_NAMESPACE: royce
 
             envFrom:
               - secretRef:
-                  name: teslamate-jan-secret
+                  name: teslamate-royce-secret
 
             resources:
               requests:
@@ -74,8 +74,8 @@ spec:
                 memory: 512Mi
 
     service:
-      teslamate-jan:
-        controller: teslamate-jan
+      teslamate-royce:
+        controller: teslamate-royce
         ports:
           http:
             port: 4000
@@ -87,29 +87,29 @@ spec:
         annotations:
           external-dns.alpha.kubernetes.io/target: "internal.${SECRET_DOMAIN}"
         hosts:
-          - host: "teslamate-jan.${SECRET_DOMAIN}"
+          - host: "teslamate-royce.${SECRET_DOMAIN}"
             paths:
               - path: /
                 pathType: Prefix
                 service:
-                  identifier: teslamate-jan
+                  identifier: teslamate-royce
                   port: http
         tls:
           - hosts:
-              - "teslamate-jan.${SECRET_DOMAIN}"
+              - "teslamate-royce.${SECRET_DOMAIN}"
       external:
         enabled: true
         className: external
         annotations:
           external-dns.alpha.kubernetes.io/target: "external.${SECRET_DOMAIN}"
         hosts:
-          - host: "teslamate-jan.${SECRET_DOMAIN}"
+          - host: "teslamate-royce.${SECRET_DOMAIN}"
             paths:
               - path: /
                 pathType: Prefix
                 service:
-                  identifier: teslamate-jan
+                  identifier: teslamate-royce
                   port: http
         tls:
           - hosts:
-              - "teslamate-jan.${SECRET_DOMAIN}"
+              - "teslamate-royce.${SECRET_DOMAIN}"
