@@ -16,3 +16,12 @@ data:
         - 10.0.0.0/24
         - 127.0.0.1
     default_config:
+
+    # Near Home zone for garage door automation (300m radius)
+    zone:
+      - name: Near Home
+        latitude: 40.0301327
+        longitude: -111.6818796
+        radius: 300
+        icon: mdi:home-map-marker
+        passive: false
