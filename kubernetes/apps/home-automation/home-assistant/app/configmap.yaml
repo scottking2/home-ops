@@ -25,3 +25,280 @@ data:
         radius: 75
         icon: mdi:home-map-marker
         passive: false
+  automations.yaml: |
+    # Garage Door Automations
+    # Controlled by: ratgdo32 (cover.ratgdo32_fb826c_door)
+    # Triggers: Dark King Tesla + Scott's iPhone (+ Grace's iPhone when added)
+    #
+    # Zones used:
+    #   zone.near_home  — 100m radius (trigger open when entering)
+    #   zone.near_home  — 75m radius (trigger close when leaving)
+    #
+    # Time guard: automations disabled 12:00AM – 4:30AM
+    #
+    # Speed/activity gating on OPEN (prevents false opens when walking):
+    #   Tesla:  sensor.tesla_speed > 10 mph (available now)
+    #   Phones: sensor.sking_iphone_activity == "automotive" (enable in HA Companion App)
+    #
+    # Departures are unconditional — any tracked device leaving closes the garage.
+    # This covers: Scott walks (Grace home → closes), Grace drives Atlas alone (Scott home → closes).
+
+    # --- OPEN: Tesla arriving (speed-gated) ---
+    - id: garage_open_tesla_arriving
+      alias: "Garage - Open when Dark King enters near home (speed-gated)"
+      description: "Opens garage when Tesla crosses 300m zone at driving speed (>10 mph)"
+      mode: single
+      trigger:
+        - platform: zone
+          entity_id: device_tracker.tesla_location
+          zone: zone.near_home
+          event: enter
+      condition:
+        - condition: time
+          after: "04:30:00"
+        - condition: state
+          entity_id: cover.ratgdo32_fb826c_door
+          state: "closed"
+        # Speed gate — must be driving, not coasting/pushing/parked near boundary
+        - condition: numeric_state
+          entity_id: sensor.tesla_speed
+          above: 10
+      action:
+        - service: cover.open_cover
+          target:
+            entity_id: cover.ratgdo32_fb826c_door
+
+    # --- OPEN: Scott's phone arriving (activity-gated) ---
+    # Requires "Activity" sensor enabled in HA Companion App → Settings → Manage Sensors
+    # Until enabled, this automation will silently not fire (safe default — door stays closed)
+    - id: garage_open_scott_phone_arriving
+      alias: "Garage - Open when Scott's phone enters near home (automotive only)"
+      description: "Opens garage when Scott's iPhone enters 300m zone while in a vehicle"
+      mode: single
+      trigger:
+        - platform: zone
+          entity_id: device_tracker.sking_iphone
+          zone: zone.near_home
+          event: enter
+      condition:
+        - condition: time
+          after: "04:30:00"
+        - condition: state
+          entity_id: cover.ratgdo32_fb826c_door
+          state: "closed"
+        # Activity gate — only open if iPhone thinks you're in a vehicle
+        # Enable "Activity" sensor in HA Companion App for this to work
+        - condition: state
+          entity_id: sensor.sking_iphone_activity
+          state: "automotive"
+      action:
+        - service: cover.open_cover
+          target:
+            entity_id: cover.ratgdo32_fb826c_door
+
+    # --- CLOSE: Tesla leaving home (PRIMARY) ---
+    # Tesla is the primary trigger — closes immediately when it exits 75m zone.
+    # No delay: Tesla GPS is very reliable and precise.
+    - id: garage_close_tesla_leaving
+      alias: "Garage - Close when Dark King leaves near home (immediate)"
+      description: "Primary trigger: closes immediately when Tesla exits 75m zone"
+      mode: single
+      trigger:
+        - platform: zone
+          entity_id: device_tracker.tesla_location
+          zone: zone.near_home
+          event: leave
+      condition:
+        - condition: time
+          after: "04:30:00"
+        - condition: state
+          entity_id: cover.ratgdo32_fb826c_door
+          state: "open"
+      action:
+        - repeat:
+            count: 10
+            sequence:
+              - service: light.turn_on
+                target:
+                  entity_id: light.ratgdo32_fb826c_light
+              - delay:
+                  milliseconds: 250
+              - service: light.turn_off
+                target:
+                  entity_id: light.ratgdo32_fb826c_light
+              - delay:
+                  milliseconds: 250
+        - delay: "00:00:03"
+        - condition: state
+          entity_id: cover.ratgdo32_fb826c_door
+          state: "open"
+        - service: cover.close_cover
+          target:
+            entity_id: cover.ratgdo32_fb826c_door
+
+    # --- CLOSE: Scott's phone leaving home (SECONDARY) ---
+    # Secondary trigger — 1 minute delay to avoid firing when phone is in the Tesla
+    # (Tesla automation handles that case). Covers: phone-only trips (Grace driving Atlas,
+    # Scott on a walk, etc.) when the Tesla isn't moving.
+    - id: garage_close_scott_phone_leaving
+      alias: "Garage - Close when Scott's phone leaves near home (1-min delay)"
+      description: "Secondary trigger: closes 1 min after phone exits 75m zone (Tesla handles Tesla trips)"
+      mode: single
+      trigger:
+        - platform: zone
+          entity_id: device_tracker.sking_iphone
+          zone: zone.near_home
+          event: leave
+      condition:
+        - condition: time
+          after: "04:30:00"
+        - condition: state
+          entity_id: cover.ratgdo32_fb826c_door
+          state: "open"
+      action:
+        - delay: "00:01:00"
+        - condition: state
+          entity_id: cover.ratgdo32_fb826c_door
+          state: "open"
+        - repeat:
+            count: 10
+            sequence:
+              - service: light.turn_on
+                target:
+                  entity_id: light.ratgdo32_fb826c_light
+              - delay:
+                  milliseconds: 250
+              - service: light.turn_off
+                target:
+                  entity_id: light.ratgdo32_fb826c_light
+              - delay:
+                  milliseconds: 250
+        - delay: "00:00:03"
+        - condition: state
+          entity_id: cover.ratgdo32_fb826c_door
+          state: "open"
+        - service: cover.close_cover
+          target:
+            entity_id: cover.ratgdo32_fb826c_door
+
+    # --- AUTO-CLOSE: Door left open 45 minutes ---
+    # No time guard — if the door is left open at 3am, we still want it to close
+    - id: garage_auto_close_45min
+      alias: "Garage - Auto-close after 45 minutes open"
+      description: "Warns at 40 min (light flash + notification), closes at 45 min if still open"
+      mode: single
+      trigger:
+        - platform: state
+          entity_id: cover.ratgdo32_fb826c_door
+          to: "open"
+          for: "00:40:00"
+      condition:
+        - condition: state
+          entity_id: cover.ratgdo32_fb826c_door
+          state: "open"
+      action:
+        # === WARNING PHASE (40 min mark) ===
+        - service: notify.mobile_app_sking_iphone
+          data:
+            title: "⚠️ Garage Door Alert"
+            message: "Garage has been open 40 minutes. Closing automatically in 5 minutes."
+            data:
+              push:
+                sound:
+                  name: default
+                  critical: 1
+                  volume: 1.0
+        # Flash opener light 5 times as visual/audible warning
+        - repeat:
+            count: 5
+            sequence:
+              - service: light.turn_on
+                target:
+                  entity_id: light.ratgdo32_fb826c_light
+              - delay: "00:00:02"
+              - service: light.turn_off
+                target:
+                  entity_id: light.ratgdo32_fb826c_light
+              - delay: "00:00:02"
+        - service: light.turn_off
+          target:
+            entity_id: light.ratgdo32_fb826c_light
+        # === 5-MINUTE COUNTDOWN ===
+        - delay: "00:05:00"
+        - condition: state
+          entity_id: cover.ratgdo32_fb826c_door
+          state: "open"
+        # === FINAL WARNING: 10 blinks + 10 second hold before closing ===
+        - repeat:
+            count: 10
+            sequence:
+              - service: light.turn_on
+                target:
+                  entity_id: light.ratgdo32_fb826c_light
+              - delay:
+                  milliseconds: 250
+              - service: light.turn_off
+                target:
+                  entity_id: light.ratgdo32_fb826c_light
+              - delay:
+                  milliseconds: 250
+        - delay: "00:00:03"
+        - condition: state
+          entity_id: cover.ratgdo32_fb826c_door
+          state: "open"
+        # === CLOSE ===
+        - service: cover.close_cover
+          target:
+            entity_id: cover.ratgdo32_fb826c_door
+        - service: notify.mobile_app_sking_iphone
+          data:
+            title: "🔒 Garage Closed"
+            message: "Garage door was closed automatically after 45 minutes."
+
+    # TODO: Grace's phone — uncomment and update entity_id after she installs HA Companion App
+    # Also update the activity sensor entity name to match her device
+    #
+    # - id: garage_open_grace_phone_arriving
+    #   alias: "Garage - Open when Grace's phone enters near home (automotive only)"
+    #   mode: single
+    #   trigger:
+    #     - platform: zone
+    #       entity_id: device_tracker.graces_iphone   # <-- update with actual entity
+    #       zone: zone.near_home
+    #       event: enter
+    #   condition:
+    #     - condition: time
+    #       after: "04:30:00"
+    #     - condition: state
+    #       entity_id: cover.ratgdo32_fb826c_door
+    #       state: "closed"
+    #     - condition: state
+    #       entity_id: sensor.graces_iphone_activity   # <-- update with actual entity
+    #       state: "automotive"
+    #   action:
+    #     - service: cover.open_cover
+    #       target:
+    #         entity_id: cover.ratgdo32_fb826c_door
+    #
+    # - id: garage_close_grace_phone_leaving
+    #   alias: "Garage - Close when Grace's phone leaves home zone"
+    #   mode: single
+    #   trigger:
+    #     - platform: zone
+    #       entity_id: device_tracker.graces_iphone   # <-- update with actual entity
+    #       zone: zone.near_home
+    #       event: leave
+    #   condition:
+    #     - condition: time
+    #       after: "04:30:00"
+    #     - condition: state
+    #       entity_id: cover.ratgdo32_fb826c_door
+    #       state: "open"
+    #   action:
+    #     - delay: "00:00:30"
+    #     - condition: state
+    #       entity_id: cover.ratgdo32_fb826c_door
+    #       state: "open"
+    #     - service: cover.close_cover
+    #       target:
+    #         entity_id: cover.ratgdo32_fb826c_door
