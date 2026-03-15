@@ -185,7 +185,7 @@ data:
     # No time guard — if the door is left open at 3am, we still want it to close
     - id: garage_auto_close_45min
       alias: "Garage - Auto-close after 45 minutes open"
-      description: "Warns at 40 min (light flash + notification), closes at 45 min if still open"
+      description: "Flashes light at 40 min, closes at 45 min if still open, then sends normal notification"
       mode: single
       trigger:
         - platform: state
@@ -197,17 +197,7 @@ data:
           entity_id: cover.ratgdo32_fb826c_door
           state: "open"
       action:
-        # === WARNING PHASE (40 min mark) ===
-        - service: notify.mobile_app_sking_iphone
-          data:
-            title: "⚠️ Garage Door Alert"
-            message: "Garage has been open 40 minutes. Closing automatically in 5 minutes."
-            data:
-              push:
-                sound:
-                  name: default
-                  critical: 1
-                  volume: 1.0
+        # === WARNING PHASE (40 min mark) — light flash only, no notification ===
         # Flash opener light 5 times as visual/audible warning
         - repeat:
             count: 5
