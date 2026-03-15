@@ -44,6 +44,12 @@ spec:
                 else
                   echo "configuration.yaml already exists, skipping"
                 fi
+                if [ ! -f /config/automations.yaml ]; then
+                  cp /config-base/automations.yaml /config/automations.yaml
+                  echo "Seeded automations.yaml"
+                else
+                  echo "automations.yaml already exists, skipping"
+                fi
         containers:
           app:
             image:
@@ -122,4 +128,7 @@ spec:
         globalMounts:
           - path: /config-base/configuration.yaml
             subPath: configuration.yaml
+            readOnly: true
+          - path: /config-base/automations.yaml
+            subPath: automations.yaml
             readOnly: true
