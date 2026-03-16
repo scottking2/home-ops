@@ -33,7 +33,7 @@ data:
     - 131.0.72.0/22
     default_config:
 
-    # Near Home zone for garage door automation (75m radius)
+    # Garage door zones (two radii: larger for arrival, smaller for departure)
     zone:
       - name: Near Home
         latitude: 40.0301327
@@ -41,14 +41,20 @@ data:
         radius: 75
         icon: mdi:home-map-marker
         passive: false
+      - name: Leaving Home
+        latitude: 40.0301327
+        longitude: -111.6818796
+        radius: 50
+        icon: mdi:home-export-outline
+        passive: false
   automations.yaml: |
     # Garage Door Automations
     # Controlled by: ratgdo32 (cover.ratgdo32_fb826c_door)
     # Triggers: Dark King Tesla + Scott's iPhone (+ Grace's iPhone when added)
     #
     # Zones used:
-    #   zone.near_home  — 100m radius (trigger open when entering)
-    #   zone.near_home  — 75m radius (trigger close when leaving)
+    #   zone.near_home    — 75m radius (trigger open when entering)
+    #   zone.leaving_home — 50m radius (trigger close when leaving)
     #
     # Time guard: automations disabled 12:00AM – 4:30AM
     #
@@ -113,16 +119,16 @@ data:
             entity_id: cover.ratgdo32_fb826c_door
 
     # --- CLOSE: Tesla leaving home (PRIMARY) ---
-    # Tesla is the primary trigger — closes immediately when it exits 75m zone.
+    # Tesla is the primary trigger — closes immediately when it exits 50m zone.
     # No delay: Tesla GPS is very reliable and precise.
     - id: garage_close_tesla_leaving
-      alias: "Garage - Close when Dark King leaves near home (immediate)"
-      description: "Primary trigger: closes immediately when Tesla exits 75m zone"
+      alias: "Garage - Close when Dark King leaves home (immediate)"
+      description: "Primary trigger: closes immediately when Tesla exits 50m zone"
       mode: single
       trigger:
         - platform: zone
           entity_id: device_tracker.tesla_location
-          zone: zone.near_home
+          zone: zone.leaving_home
           event: leave
       condition:
         - condition: time
@@ -157,13 +163,13 @@ data:
     # (Tesla automation handles that case). Covers: phone-only trips (Grace driving Atlas,
     # Scott on a walk, etc.) when the Tesla isn't moving.
     - id: garage_close_scott_phone_leaving
-      alias: "Garage - Close when Scott's phone leaves near home (1-min delay)"
-      description: "Secondary trigger: closes 1 min after phone exits 75m zone (Tesla handles Tesla trips)"
+      alias: "Garage - Close when Scott's phone leaves home (1-min delay)"
+      description: "Secondary trigger: closes 1 min after phone exits 50m zone (Tesla handles Tesla trips)"
       mode: single
       trigger:
         - platform: zone
           entity_id: device_tracker.sking_iphone
-          zone: zone.near_home
+          zone: zone.leaving_home
           event: leave
       condition:
         - condition: time
@@ -292,7 +298,7 @@ data:
     #   trigger:
     #     - platform: zone
     #       entity_id: device_tracker.graces_iphone   # <-- update with actual entity
-    #       zone: zone.near_home
+    #       zone: zone.leaving_home
     #       event: leave
     #   condition:
     #     - condition: time
