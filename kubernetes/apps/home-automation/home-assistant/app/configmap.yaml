@@ -58,9 +58,9 @@ data:
     #
     # Time guard: automations disabled 12:00AM – 4:30AM
     #
-    # Speed/activity gating on OPEN (prevents false opens when walking):
-    #   Tesla:  sensor.tesla_speed > 10 mph (available now)
-    #   Phones: sensor.sking_iphone_activity == "automotive" (enable in HA Companion App)
+    # Speed gating on OPEN (prevents false opens when walking):
+    #   Tesla:  sensor.tesla_speed > 10 mph
+    #   Phones: no gate (activity sensor too unreliable at low speeds near home)
     #
     # Departures are unconditional — any tracked device leaving closes the garage.
     # This covers: Scott walks (Grace home → closes), Grace drives Atlas alone (Scott home → closes).
@@ -90,12 +90,10 @@ data:
           target:
             entity_id: cover.ratgdo32_fb826c_door
 
-    # --- OPEN: Scott's phone arriving (activity-gated) ---
-    # Requires "Activity" sensor enabled in HA Companion App → Settings → Manage Sensors
-    # Until enabled, this automation will silently not fire (safe default — door stays closed)
+    # --- OPEN: Scott's phone arriving ---
     - id: garage_open_scott_phone_arriving
-      alias: "Garage - Open when Scott's phone enters near home (automotive only)"
-      description: "Opens garage when Scott's iPhone enters 300m zone while in a vehicle"
+      alias: "Garage - Open when Scott's phone enters near home"
+      description: "Opens garage when Scott's iPhone enters near home zone"
       mode: single
       trigger:
         - platform: zone
@@ -108,11 +106,6 @@ data:
         - condition: state
           entity_id: cover.ratgdo32_fb826c_door
           state: "closed"
-        # Activity gate — only open if iPhone thinks you're in a vehicle
-        # Enable "Activity" sensor in HA Companion App for this to work
-        - condition: state
-          entity_id: sensor.sking_iphone_activity
-          state: "automotive"
       action:
         - service: cover.open_cover
           target:
@@ -262,12 +255,10 @@ data:
             title: "🔒 Garage Closed"
             message: "Garage door was closed automatically after 45 minutes."
 
-    # --- OPEN: Grace's phone arriving (activity-gated) ---
-    # Requires "Activity" sensor enabled in HA Companion App → Settings → Manage Sensors
-    # Until enabled, this automation will silently not fire (safe default — door stays closed)
+    # --- OPEN: Grace's phone arriving ---
     - id: garage_open_grace_phone_arriving
-      alias: "Garage - Open when Grace's phone enters near home (automotive only)"
-      description: "Opens garage when Grace's iPhone enters near home zone while in a vehicle"
+      alias: "Garage - Open when Grace's phone enters near home"
+      description: "Opens garage when Grace's iPhone enters near home zone"
       mode: single
       trigger:
         - platform: zone
@@ -280,11 +271,6 @@ data:
         - condition: state
           entity_id: cover.ratgdo32_fb826c_door
           state: "closed"
-        # Activity gate — only open if iPhone thinks you're in a vehicle
-        # Enable "Activity" sensor in HA Companion App → Settings → Manage Sensors
-        - condition: state
-          entity_id: sensor.grace_s_iphone_activity
-          state: "automotive"
       action:
         - service: cover.open_cover
           target:
