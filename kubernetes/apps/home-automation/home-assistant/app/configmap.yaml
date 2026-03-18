@@ -159,12 +159,11 @@ data:
             entity_id: cover.ratgdo32_fb826c_door
 
     # --- CLOSE: Scott's phone leaving home (SECONDARY) ---
-    # Secondary trigger — 1 minute delay to avoid firing when phone is in the Tesla
-    # (Tesla automation handles that case). Covers: phone-only trips (Grace driving Atlas,
+    # Secondary trigger — covers phone-only trips (Grace driving Atlas,
     # Scott on a walk, etc.) when the Tesla isn't moving.
     - id: garage_close_scott_phone_leaving
-      alias: "Garage - Close when Scott's phone leaves home (1-min delay)"
-      description: "Secondary trigger: closes 1 min after phone exits 50m zone (Tesla handles Tesla trips)"
+      alias: "Garage - Close when Scott's phone leaves home"
+      description: "Secondary trigger: closes immediately when phone exits 50m zone"
       mode: single
       trigger:
         - platform: zone
@@ -178,10 +177,6 @@ data:
           entity_id: cover.ratgdo32_fb826c_door
           state: "open"
       action:
-        - delay: "00:01:00"
-        - condition: state
-          entity_id: cover.ratgdo32_fb826c_door
-          state: "open"
         - repeat:
             count: 10
             sequence:
@@ -296,10 +291,9 @@ data:
             entity_id: cover.ratgdo32_fb826c_door
 
     # --- CLOSE: Grace's phone leaving home (SECONDARY) ---
-    # Same pattern as Scott's — 1 minute delay to avoid false triggers.
     - id: garage_close_grace_phone_leaving
-      alias: "Garage - Close when Grace's phone leaves home (1-min delay)"
-      description: "Secondary trigger: closes 1 min after Grace's phone exits leaving_home zone"
+      alias: "Garage - Close when Grace's phone leaves home"
+      description: "Secondary trigger: closes immediately when Grace's phone exits leaving_home zone"
       mode: single
       trigger:
         - platform: zone
@@ -313,10 +307,6 @@ data:
           entity_id: cover.ratgdo32_fb826c_door
           state: "open"
       action:
-        - delay: "00:01:00"
-        - condition: state
-          entity_id: cover.ratgdo32_fb826c_door
-          state: "open"
         - repeat:
             count: 10
             sequence:
