@@ -62,8 +62,11 @@ data:
     #   Tesla:  sensor.tesla_speed > 10 mph
     #   Phones: no gate (activity sensor too unreliable at low speeds near home)
     #
-    # Departures are unconditional — any tracked device leaving closes the garage.
-    # This covers: Scott walks (Grace home → closes), Grace drives Atlas alone (Scott home → closes).
+    # Departure close triggers:
+    #   Tesla:  unconditional (if the car is leaving, you're driving)
+    #   Phones: activity-gated — only closes when phone reports "Automotive"
+    #           Walking, biking, running won't trigger close (kids-in-driveway safe)
+    #           The 45-min auto-close is the safety net for non-driving departures
 
     # --- OPEN: Tesla arriving (speed-gated) ---
     - id: garage_open_tesla_arriving
@@ -153,10 +156,13 @@ data:
 
     # --- CLOSE: Scott's phone leaving home (SECONDARY) ---
     # Secondary trigger — covers phone-only trips (Grace driving Atlas,
-    # Scott on a walk, etc.) when the Tesla isn't moving.
+    # etc.) when the Tesla isn't moving.
+    # Activity-gated: only closes when phone reports "Automotive".
+    # Walking, biking, running around the neighborhood won't trigger close.
+    # The 45-min auto-close is the safety net for non-driving departures.
     - id: garage_close_scott_phone_leaving
       alias: "Garage - Close when Scott's phone leaves home"
-      description: "Secondary trigger: closes immediately when phone exits 50m zone"
+      description: "Secondary trigger: closes when phone exits 50m zone (automotive only)"
       mode: single
       trigger:
         - platform: zone
@@ -169,6 +175,10 @@ data:
         - condition: state
           entity_id: cover.ratgdo32_fb826c_door
           state: "open"
+        # Only close if phone detects driving — walking/biking/running are ignored
+        - condition: state
+          entity_id: sensor.sking_iphone_activity
+          state: "Automotive"
       action:
         - repeat:
             count: 10
@@ -277,9 +287,10 @@ data:
             entity_id: cover.ratgdo32_fb826c_door
 
     # --- CLOSE: Grace's phone leaving home (SECONDARY) ---
+    # Activity-gated: only closes when phone reports "Automotive".
     - id: garage_close_grace_phone_leaving
       alias: "Garage - Close when Grace's phone leaves home"
-      description: "Secondary trigger: closes immediately when Grace's phone exits leaving_home zone"
+      description: "Secondary trigger: closes when Grace's phone exits leaving_home zone (automotive only)"
       mode: single
       trigger:
         - platform: zone
@@ -292,6 +303,10 @@ data:
         - condition: state
           entity_id: cover.ratgdo32_fb826c_door
           state: "open"
+        # Only close if phone detects driving
+        - condition: state
+          entity_id: sensor.grace_s_iphone_activity
+          state: "Automotive"
       action:
         - repeat:
             count: 10
