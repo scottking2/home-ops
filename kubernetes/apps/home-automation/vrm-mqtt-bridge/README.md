@@ -20,6 +20,8 @@ Polls the VRM API, writes telemetry to CNPG Postgres, and republishes current va
 - `DATABASE_NAME`
 - `DATABASE_USER`
 - `DATABASE_PASS`
+- `LAKEMATES_PUSH_URL` (stage ingest endpoint, e.g. `https://stage.lakemates.com/api/victron/ingest`)
+- `LAKEMATES_SITE_KEY` (matches the stage tenant's `worker_site_key` / ingest site key)
 
 ## Runtime behavior
 
@@ -27,6 +29,7 @@ Polls the VRM API, writes telemetry to CNPG Postgres, and republishes current va
 - current values are written to `victron_latest`
 - numeric values are appended to `victron_history`
 - current values are also republished to `victron/<metric>` on local Mosquitto
+- when `LAKEMATES_PUSH_URL` + `LAKEMATES_SITE_KEY` are set, each poll also pushes a snapshot into Lakemates stage ingest for the Solar & Batteries page
 
 ## Notes
 
