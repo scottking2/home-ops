@@ -32,6 +32,8 @@ spec:
           reloader.stakater.com/auto: "true"
         pod:
           enableServiceLinks: false
+          imagePullSecrets:
+            - name: vrm-mqtt-bridge-ghcr
         initContainers:
           init-db:
             image:

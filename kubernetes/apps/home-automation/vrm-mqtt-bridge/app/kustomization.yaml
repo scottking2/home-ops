@@ -4,6 +4,7 @@ kind: Kustomization
 namespace: home-automation
 resources:
   - ./externalsecret.yaml
+  - ./ghcr-externalsecret.yaml
   - ./helmrelease.yaml
   - ./configmap.yaml
 configMapGenerator:
