@@ -79,6 +79,45 @@ Required fields:
 4. Verify: `kubectl logs -n home-automation deploy/vrm-mqtt-bridge`
 5. Verify Grafana Victron dashboard shows live data
 
+## Current live status (2026-04-11)
+
+### Confirmed working
+- Flux applied `vrm-mqtt-bridge` successfully on `home-ops`
+- GHCR pull secret is present and image pull is no longer blocked
+- ExternalSecret is syncing and the runtime secret exists in-cluster
+- Bridge pod is running in `home-automation`
+- CNPG Postgres is healthy and the `victron` schema objects exist:
+  - `victron_history`
+  - `victron_latest`
+
+### Confirmed blocked
+- The bridge is **not** ingesting live Victron data yet
+- Current pod logs show repeated VRM auth failures:
+  - `VRM MQTT connect failed: rc=Bad user name or password`
+- Row counts are still zero in Postgres for both telemetry tables
+
+### What was tested live
+- Verified pod, Helm/Flux state, ExternalSecret sync, and DB schema
+- Confirmed runtime env vars are populated in the bridge pod
+- Tested multiple likely MQTT auth combinations from inside the running pod:
+  - empty username + token password → `Bad user name or password`
+  - VRM email + token → `Not authorized`
+  - `Token` / `token` / `any` + token → `Not authorized`
+
+### Current conclusion
+This is no longer a Kubernetes/bootstrap problem. The remaining blocker is **Victron VRM MQTT authentication**. Most likely one of:
+- `VRM_TOKEN` in 1Password is invalid/stale/wrong for MQTT
+- MQTT access is not enabled for this VRM installation/account
+- the account/token pair does not have MQTT authorization
+- the bridge auth contract needs to be adjusted once the correct Victron MQTT login format is confirmed
+
+### Next actions
+1. Verify Victron-side MQTT access is enabled for the installation/account
+2. Regenerate or replace the VRM token in 1Password item `lakemates victron integration - tranquility`
+3. Let ExternalSecret refresh (or force restart/reconcile bridge)
+4. Re-check logs for successful VRM connection
+5. Confirm rows begin landing in `victron_history` / `victron_latest`
+
 ## What is NOT deployed / out of scope
 
 - Production Lakemates (no changes)
