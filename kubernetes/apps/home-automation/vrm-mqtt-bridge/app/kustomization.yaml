@@ -6,3 +6,4 @@ resources:
   - ./externalsecret.yaml
   - ./ghcr-externalsecret.yaml
   - ./helmrelease.yaml
+  - ./networkpolicy.yaml

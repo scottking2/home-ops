@@ -6,7 +6,12 @@ metadata:
 data:
   mosquitto.conf: |
     listener 1883
-    allow_anonymous true
+    allow_anonymous false
+    password_file /mosquitto/config/passwd
     persistence true
     persistence_location /mosquitto/data
     autosave_interval 1800
+    acl_file /mosquitto/config/acl
+  acl: |
+    user telemetry
+    topic readwrite victron/#

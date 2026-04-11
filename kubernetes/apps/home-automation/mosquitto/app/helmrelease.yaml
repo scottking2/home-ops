@@ -45,9 +45,7 @@ spec:
     service:
       app:
         controller: mosquitto
-        type: LoadBalancer
-        annotations:
-          io.cilium/lb-ipam-ips: "10.0.0.236"
+        type: ClusterIP
         ports:
           mqtt:
             port: 1883
@@ -58,6 +56,17 @@ spec:
         globalMounts:
           - path: /mosquitto/config/mosquitto.conf
             subPath: mosquitto.conf
+            readOnly: true
+          - path: /mosquitto/config/acl
+            subPath: acl
+            readOnly: true
+      passwd:
+        enabled: true
+        type: secret
+        name: mosquitto-auth
+        globalMounts:
+          - path: /mosquitto/config/passwd
+            subPath: passwd
             readOnly: true
       data:
         existingClaim: mosquitto-data

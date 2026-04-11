@@ -34,6 +34,12 @@ spec:
           enableServiceLinks: false
           imagePullSecrets:
             - name: vrm-mqtt-bridge-ghcr
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 10001
+            runAsGroup: 10001
+            fsGroup: 10001
+            fsGroupChangePolicy: OnRootMismatch
         initContainers:
           init-db:
             image:
@@ -47,8 +53,14 @@ spec:
           app:
             image:
               repository: ghcr.io/scottking2/vrm-mqtt-bridge
-              tag: "0.2.2"
+              tag: "0.2.4"
               pullPolicy: IfNotPresent
+            securityContext:
+              allowPrivilegeEscalation: false
+              readOnlyRootFilesystem: true
+              capabilities:
+                drop:
+                  - ALL
             env:
               TZ: America/Denver
               LOG_LEVEL: INFO
@@ -64,6 +76,7 @@ spec:
                 cpu: 25m
                 memory: 64Mi
               limits:
+                cpu: 250m
                 memory: 256Mi
             probes:
               liveness:
@@ -79,9 +92,36 @@ spec:
                   periodSeconds: 30
                   failureThreshold: 3
               readiness:
-                enabled: false
+                enabled: true
+                custom: true
+                spec:
+                  exec:
+                    command:
+                      - python
+                      - -c
+                      - import os; os.path.exists('/tmp/healthy') or exit(1)
+                  initialDelaySeconds: 10
+                  periodSeconds: 15
+                  failureThreshold: 3
               startup:
-                enabled: false
+                enabled: true
+                custom: true
+                spec:
+                  exec:
+                    command:
+                      - python
+                      - -c
+                      - import os; os.path.exists('/tmp/healthy') or exit(1)
+                  initialDelaySeconds: 10
+                  periodSeconds: 10
+                  failureThreshold: 12
+    defaultPodOptions:
+      volumes:
+        - name: tmp
+          emptyDir: {}
+      volumeMounts:
+        - name: tmp
+          mountPath: /tmp
     service:
       app:
         controller: vrm-mqtt-bridge
