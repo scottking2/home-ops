@@ -47,12 +47,11 @@ spec:
           app:
             image:
               repository: ghcr.io/scottking2/vrm-mqtt-bridge
-              tag: "0.1.0"
+              tag: "0.2.0"
               pullPolicy: IfNotPresent
             env:
               TZ: America/Denver
               LOG_LEVEL: INFO
-              VRM_MQTT_PORT: "8883"
               LOCAL_MQTT_HOST: mosquitto.home-automation.svc.cluster.local
               LOCAL_MQTT_PORT: "1883"
               LOCAL_MQTT_PREFIX: victron
@@ -87,11 +86,3 @@ spec:
       app:
         controller: vrm-mqtt-bridge
         enabled: false
-    persistence:
-      certs:
-        type: configMap
-        name: vrm-mqtt-bridge-certs
-        globalMounts:
-          - path: /certs/venus-ca.crt
-            subPath: venus-ca.crt
-            readOnly: true
