@@ -1,0 +1,95 @@
+---
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: vrm-mqtt-bridge
+  namespace: home-automation
+spec:
+  interval: 30m
+  chart:
+    spec:
+      chart: app-template
+      version: 4.6.2
+      sourceRef:
+        kind: HelmRepository
+        name: bjw-s
+        namespace: flux-system
+  install:
+    remediation:
+      retries: 3
+  upgrade:
+    cleanupOnFail: true
+    remediation:
+      strategy: rollback
+      retries: 3
+  uninstall:
+    keepHistory: false
+  values:
+    controllers:
+      vrm-mqtt-bridge:
+        strategy: Recreate
+        annotations:
+          reloader.stakater.com/auto: "true"
+        pod:
+          enableServiceLinks: false
+        initContainers:
+          init-db:
+            image:
+              repository: ghcr.io/home-operations/postgres-init
+              tag: "18.3"
+              pullPolicy: IfNotPresent
+            envFrom:
+              - secretRef:
+                  name: vrm-mqtt-bridge-init-db
+        containers:
+          app:
+            image:
+              repository: ghcr.io/scottking2/vrm-mqtt-bridge
+              tag: "0.1.0"
+              pullPolicy: IfNotPresent
+            env:
+              TZ: America/Denver
+              LOG_LEVEL: INFO
+              VRM_MQTT_PORT: "8883"
+              LOCAL_MQTT_HOST: mosquitto.home-automation.svc.cluster.local
+              LOCAL_MQTT_PORT: "1883"
+              LOCAL_MQTT_PREFIX: victron
+              DB_WRITE_INTERVAL: "30"
+            envFrom:
+              - secretRef:
+                  name: vrm-mqtt-bridge-secret
+            resources:
+              requests:
+                cpu: 25m
+                memory: 64Mi
+              limits:
+                memory: 256Mi
+            probes:
+              liveness:
+                enabled: true
+                custom: true
+                spec:
+                  exec:
+                    command:
+                      - python
+                      - -c
+                      - import os; os.path.exists('/tmp/healthy') or exit(1)
+                  initialDelaySeconds: 30
+                  periodSeconds: 30
+                  failureThreshold: 3
+              readiness:
+                enabled: false
+              startup:
+                enabled: false
+    service:
+      app:
+        controller: vrm-mqtt-bridge
+        enabled: false
+    persistence:
+      certs:
+        type: configMap
+        name: vrm-mqtt-bridge-certs
+        globalMounts:
+          - path: /certs/venus-ca.crt
+            subPath: venus-ca.crt
+            readOnly: true

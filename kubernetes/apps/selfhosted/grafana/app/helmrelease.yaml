@@ -83,6 +83,18 @@ spec:
               postgresVersion: 1600
             secureJsonData:
               password: "$__env{TESLAMATE_ROYCE_DB_PASS}"
+          - name: Victron
+            type: postgres
+            uid: victron_postgres
+            url: "$__env{GF_DATABASE_HOST}:5432"
+            user: "$__env{VICTRON_DB_USER}"
+            isDefault: false
+            jsonData:
+              database: "$__env{VICTRON_DB_NAME}"
+              sslmode: disable
+              postgresVersion: 1700
+            secureJsonData:
+              password: "$__env{VICTRON_DB_PASS}"
 
     dashboardProviders:
       dashboardproviders.yaml:
@@ -112,6 +124,14 @@ spec:
             editable: true
             options:
               path: /var/lib/grafana/dashboards/cost-overview
+          - name: victron
+            orgId: 1
+            folder: Victron
+            type: file
+            disableDeletion: false
+            editable: true
+            options:
+              path: /var/lib/grafana/dashboards/victron
 
     dashboards:
       teslamate:
@@ -196,10 +216,16 @@ spec:
       - name: cost-overview-dashboard
         configMap:
           name: grafana-dashboard-cost-overview
+      - name: victron-dashboard
+        configMap:
+          name: grafana-dashboard-victron-overview
 
     extraVolumeMounts:
       - name: cost-overview-dashboard
         mountPath: /var/lib/grafana/dashboards/cost-overview
+        readOnly: true
+      - name: victron-dashboard
+        mountPath: /var/lib/grafana/dashboards/victron
         readOnly: true
 
     persistence:

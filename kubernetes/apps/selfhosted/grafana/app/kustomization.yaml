@@ -8,3 +8,4 @@ resources:
   - ./helmrelease.yaml
   - ./ingress.yaml
   - ./dashboard-cost-configmap.yaml
+  - ./dashboard-victron-configmap.yaml

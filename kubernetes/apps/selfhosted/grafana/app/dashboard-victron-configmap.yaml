@@ -1,0 +1,100 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-dashboard-victron-overview
+  namespace: selfhosted
+  labels:
+    grafana_dashboard: "1"
+data:
+  victron-overview.json: |
+    {
+      "uid": "victron-overview-sk",
+      "title": "Victron Overview",
+      "tags": ["victron", "energy", "houseboat"],
+      "timezone": "browser",
+      "schemaVersion": 39,
+      "version": 1,
+      "refresh": "30s",
+      "time": { "from": "now-24h", "to": "now" },
+      "panels": [
+        {
+          "id": 1,
+          "title": "Battery SOC",
+          "type": "timeseries",
+          "gridPos": { "x": 0, "y": 0, "w": 12, "h": 8 },
+          "datasource": { "type": "postgres", "uid": "victron_postgres" },
+          "targets": [
+            {
+              "refId": "A",
+              "format": "time_series",
+              "rawSql": "SELECT recorded_at AS time, value AS \"Battery SOC\" FROM victron_history WHERE metric = 'battery_soc' AND $__timeFilter(recorded_at) ORDER BY recorded_at"
+            }
+          ],
+          "fieldConfig": { "defaults": { "unit": "percent" }, "overrides": [] },
+          "options": { "legend": { "displayMode": "list", "placement": "bottom" } }
+        },
+        {
+          "id": 2,
+          "title": "Solar vs Consumption",
+          "type": "timeseries",
+          "gridPos": { "x": 12, "y": 0, "w": 12, "h": 8 },
+          "datasource": { "type": "postgres", "uid": "victron_postgres" },
+          "targets": [
+            {
+              "refId": "A",
+              "format": "time_series",
+              "rawSql": "SELECT recorded_at AS time, value, metric FROM victron_history WHERE metric IN ('solar_power', 'ac_consumption_l1') AND $__timeFilter(recorded_at) ORDER BY recorded_at"
+            }
+          ],
+          "fieldConfig": { "defaults": { "unit": "watt" }, "overrides": [] },
+          "options": { "legend": { "displayMode": "list", "placement": "bottom" } }
+        },
+        {
+          "id": 3,
+          "title": "Current Battery Power",
+          "type": "stat",
+          "gridPos": { "x": 0, "y": 8, "w": 8, "h": 4 },
+          "datasource": { "type": "postgres", "uid": "victron_postgres" },
+          "targets": [
+            {
+              "refId": "A",
+              "format": "table",
+              "rawSql": "SELECT value FROM victron_latest WHERE metric = 'battery_power'"
+            }
+          ],
+          "fieldConfig": { "defaults": { "unit": "watt" }, "overrides": [] },
+          "options": { "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }, "colorMode": "background", "graphMode": "none" }
+        },
+        {
+          "id": 4,
+          "title": "Current Solar Power",
+          "type": "stat",
+          "gridPos": { "x": 8, "y": 8, "w": 8, "h": 4 },
+          "datasource": { "type": "postgres", "uid": "victron_postgres" },
+          "targets": [
+            {
+              "refId": "A",
+              "format": "table",
+              "rawSql": "SELECT value FROM victron_latest WHERE metric = 'solar_power'"
+            }
+          ],
+          "fieldConfig": { "defaults": { "unit": "watt" }, "overrides": [] },
+          "options": { "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }, "colorMode": "background", "graphMode": "none" }
+        },
+        {
+          "id": 5,
+          "title": "Current System State",
+          "type": "stat",
+          "gridPos": { "x": 16, "y": 8, "w": 8, "h": 4 },
+          "datasource": { "type": "postgres", "uid": "victron_postgres" },
+          "targets": [
+            {
+              "refId": "A",
+              "format": "table",
+              "rawSql": "SELECT value FROM victron_latest WHERE metric = 'system_state'"
+            }
+          ],
+          "options": { "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }, "colorMode": "background", "graphMode": "none" }
+        }
+      ]
+    }
