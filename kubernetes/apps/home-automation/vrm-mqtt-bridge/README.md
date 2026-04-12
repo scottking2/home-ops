@@ -32,10 +32,8 @@ Current V2 trust item is `lakemates victron v2 shared` and should provide:
 - `VICTRON_BRIDGE_MACHINE_TOKEN`
 - `VICTRON_INTERNAL_API_BASE_URL`
 
-1Password item `mosquitto home automation` should provide:
-- `MQTT_USERNAME`
-- `MQTT_PASSWORD`
-- `MQTT_PASSWD` (mosquitto password file content)
+Mosquitto currently authorizes the bridge with user `telemetry` on topic `victron/#`.
+The password file is sourced via the `mosquitto-auth` ExternalSecret, and the bridge needs matching `LOCAL_MQTT_USERNAME` / `LOCAL_MQTT_PASSWORD` at runtime.
 
 ## Runtime behavior
 

@@ -67,6 +67,8 @@ spec:
               LOCAL_MQTT_HOST: mosquitto.home-automation.svc.cluster.local
               LOCAL_MQTT_PORT: "1883"
               LOCAL_MQTT_PREFIX: victron
+              LOCAL_MQTT_USERNAME: telemetry
+              LOCAL_MQTT_PASSWORD: kW46DuzaWd.DzY4T
               DB_WRITE_INTERVAL: "30"
               VICTRON_INTERNAL_API_BASE_URL: https://stage.lakemates.com
               VICTRON_INTERNAL_API_CONFIG_PATH: /api/internal/victron/config
