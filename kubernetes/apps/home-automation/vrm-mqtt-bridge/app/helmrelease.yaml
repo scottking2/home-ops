@@ -40,9 +40,6 @@ spec:
             runAsGroup: 10001
             fsGroup: 10001
             fsGroupChangePolicy: OnRootMismatch
-          volumes:
-            - name: tmp
-              emptyDir: {}
         initContainers:
           init-db:
             image:
@@ -64,9 +61,6 @@ spec:
               capabilities:
                 drop:
                   - ALL
-            volumeMounts:
-              - name: tmp
-                mountPath: /tmp
             env:
               TZ: America/Denver
               LOG_LEVEL: INFO
@@ -126,6 +120,13 @@ spec:
                   failureThreshold: 12
     defaultPodOptions:
       securityContext: {}
+    persistence:
+      tmp:
+        type: emptyDir
+        advancedMounts:
+          vrm-mqtt-bridge:
+            app:
+              - path: /tmp
     service:
       app:
         controller: vrm-mqtt-bridge
