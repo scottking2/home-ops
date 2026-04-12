@@ -68,7 +68,8 @@ spec:
               LOCAL_MQTT_PORT: "1883"
               LOCAL_MQTT_PREFIX: victron
               DB_WRITE_INTERVAL: "30"
-              VICTRON_INTERNAL_API_CONFIG_PATH: /api/internal/victron/bridge/config
+              VICTRON_INTERNAL_API_BASE_URL: https://stage.lakemates.com
+              VICTRON_INTERNAL_API_CONFIG_PATH: /api/internal/victron/config
               VICTRON_INTERNAL_API_STATUS_PATH: /api/internal/victron/status
             envFrom:
               - secretRef:

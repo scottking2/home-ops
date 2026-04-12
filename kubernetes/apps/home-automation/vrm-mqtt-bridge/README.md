@@ -27,7 +27,7 @@ Per-boat 1Password item `lakemates victron boat - <boat-slug>` should provide:
 - `VRM_PORTAL_ID` (gateway identifier is OK; bridge resolves numeric site id automatically)
 - `LAKEMATES_SITE_KEY` (matches the stage tenant's `worker_site_key` / ingest site key)
 
-Future shared-trust item `lakemates victron v2 shared` should provide:
+Current V2 trust item is `lakemates victron v2 shared` and should provide:
 - `VICTRON_ENCRYPTION_KEY`
 - `VICTRON_BRIDGE_MACHINE_TOKEN`
 - `VICTRON_INTERNAL_API_BASE_URL`
@@ -49,9 +49,10 @@ Future shared-trust item `lakemates victron v2 shared` should provide:
 
 ## V2 enablement
 
-- The future `lakemates victron v2 shared` wiring is staged in `app/externalsecret-v2-shared.disabled.yaml`.
-- Keep that file out of `app/kustomization.yaml` until the 1Password item exists and the bridge image is ready to consume the shared-trust-only path.
-- Once V2 stage is ready, rename the file or add it to `app/kustomization.yaml`, reconcile Flux, and verify the new env vars render into `vrm-mqtt-bridge-v2-shared`.
+- The V2 trust wiring is staged in `app/externalsecret-v2-shared.disabled.yaml`.
+- It currently points at the Tranquility-specific trust item because `VICTRON_INTERNAL_API_BASE_URL` is still boat-specific.
+- Keep that file out of `app/kustomization.yaml` until the production trust item exists and the bridge runtime is ready to consume the V2 env vars in production.
+- When enabling it, add it to `app/kustomization.yaml`, reconcile Flux, and verify the new env vars render into `vrm-mqtt-bridge-v2-shared`.
 - Roll back by removing that resource from `app/kustomization.yaml` again; the pod still has the legacy env contract from `vrm-mqtt-bridge-secret`.
 
 ## Notes
