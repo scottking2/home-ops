@@ -71,6 +71,9 @@ spec:
             envFrom:
               - secretRef:
                   name: vrm-mqtt-bridge-secret
+              - secretRef:
+                  name: vrm-mqtt-bridge-v2-shared
+                  optional: true
             resources:
               requests:
                 cpu: 25m

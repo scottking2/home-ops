@@ -4,6 +4,7 @@ kind: Kustomization
 namespace: home-automation
 resources:
   - ./externalsecret.yaml
+  - ./externalsecret-v2-shared.disabled.yaml
   - ./ghcr-externalsecret.yaml
   - ./helmrelease.yaml
   - ./networkpolicy.yaml

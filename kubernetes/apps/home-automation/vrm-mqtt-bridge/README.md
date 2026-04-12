@@ -7,22 +7,30 @@ Polls the VRM API, writes telemetry to CNPG Postgres, and republishes current va
 
 - Flux Kustomization (`ks.yaml`) — depends on external-secrets-stores, cloudnative-pg, mosquitto
 - HelmRelease using bjw-s `app-template` with `postgres-init` sidecar
-- ExternalSecrets wired to 1Password item `lakemates victron integration - tranquility`
+- ExternalSecrets wired to a shared stage item plus one 1Password item per boat
+- Bridge pod also accepts an optional V2 shared-trust secret for the future Lakemates fetch/decrypt runtime
 - CNPG-backed tables: `victron_latest`, `victron_history`
 - Grafana datasource + dashboard wired in `selfhosted/grafana/`
 
 ## Required secret fields
 
-1Password item `lakemates victron integration - tranquility` should provide:
-- `VRM_EMAIL`
-- `VRM_TOKEN`
-- `VRM_PORTAL_ID` (gateway identifier is OK; bridge resolves numeric site id automatically)
+Shared 1Password item `lakemates victron stage shared` should provide:
 - `DATABASE_NAME`
 - `DATABASE_USER`
 - `DATABASE_PASS`
 - `LAKEMATES_PUSH_URL` (stage ingest endpoint, e.g. `https://stage.lakemates.com/api/victron/ingest`)
-- `LAKEMATES_SITE_KEY` (matches the stage tenant's `worker_site_key` / ingest site key)
 - `LAKEMATES_INGEST_SECRET` (shared secret sent as `X-Ingest-Secret`)
+
+Per-boat 1Password item `lakemates victron boat - <boat-slug>` should provide:
+- `VRM_EMAIL`
+- `VRM_TOKEN`
+- `VRM_PORTAL_ID` (gateway identifier is OK; bridge resolves numeric site id automatically)
+- `LAKEMATES_SITE_KEY` (matches the stage tenant's `worker_site_key` / ingest site key)
+
+Future shared-trust item `lakemates victron v2 shared` should provide:
+- `VICTRON_ENCRYPTION_KEY`
+- `VICTRON_BRIDGE_MACHINE_TOKEN`
+- `VICTRON_INTERNAL_API_BASE_URL`
 
 1Password item `mosquitto home automation` should provide:
 - `MQTT_USERNAME`
@@ -36,6 +44,15 @@ Polls the VRM API, writes telemetry to CNPG Postgres, and republishes current va
 - numeric values are appended to `victron_history`
 - current values are also republished to `victron/<metric>` on local Mosquitto
 - when `LAKEMATES_PUSH_URL` + `LAKEMATES_SITE_KEY` + `LAKEMATES_INGEST_SECRET` are set, each poll also pushes a snapshot into Lakemates stage ingest for the Solar & Batteries page
+- `VRM_BOATS_JSON` is now rendered into the runtime secret as the stage multi-boat contract; the current bridge image still receives legacy single-boat vars from the primary stage boat for compatibility
+- The pod now also looks for `VICTRON_ENCRYPTION_KEY`, `VICTRON_BRIDGE_MACHINE_TOKEN`, and `VICTRON_INTERNAL_API_BASE_URL` from an optional `vrm-mqtt-bridge-v2-shared` Secret; if that Secret is absent, stage continues to run on the current V1/stage foundation contract
+
+## V2 enablement
+
+- The future `lakemates victron v2 shared` wiring is staged in `app/externalsecret-v2-shared.disabled.yaml`.
+- Keep that file out of `app/kustomization.yaml` until the 1Password item exists and the bridge image is ready to consume the shared-trust-only path.
+- Once V2 stage is ready, rename the file or add it to `app/kustomization.yaml`, reconcile Flux, and verify the new env vars render into `vrm-mqtt-bridge-v2-shared`.
+- Roll back by removing that resource from `app/kustomization.yaml` again; the pod still has the legacy env contract from `vrm-mqtt-bridge-secret`.
 
 ## Notes
 
