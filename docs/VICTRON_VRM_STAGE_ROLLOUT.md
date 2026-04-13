@@ -1,5 +1,9 @@
 # Victron VRM Stage Rollout — CNPG-First
 
+> Historical note: this document captures the original single-boat stage rollout.
+> The current stage secret contract and onboarding flow are documented in
+> `../VICTRON_MULTI_BOAT_STAGE_IMPLEMENTATION_NOTE.md`.
+
 This documents the implementation state for the Victron proof of concept.
 CNPG Postgres on home-ops is the source of truth. Production Lakemates is untouched.
 
@@ -85,3 +89,19 @@ Required fields:
 - Cloudflare Worker push path (parked, can re-enable later)
 - Lakemates stage migration 0028 (not needed for CNPG-first path)
 - Fleet/multi-tenant support (single-portal bridge for now)
+
+## V2 bridge prep / rollback
+
+- home-ops now preserves the current stage bridge secret contract while preparing an optional second Secret for the future shared-trust-only V2 runtime.
+- `kubernetes/apps/home-automation/vrm-mqtt-bridge/app/helmrelease.yaml` reads `vrm-mqtt-bridge-v2-shared` as an optional `envFrom` source, so the pod does not fail if the Secret is missing.
+- The future 1Password-backed manifest lives at `kubernetes/apps/home-automation/vrm-mqtt-bridge/app/externalsecret-v2-shared.disabled.yaml` and intentionally stays out of `app/kustomization.yaml` until stage is ready.
+- Safe enable sequence:
+  1. Create 1Password item `lakemates victron v2 shared`.
+  2. Confirm the bridge image actually consumes `VICTRON_ENCRYPTION_KEY`, `VICTRON_BRIDGE_MACHINE_TOKEN`, and `VICTRON_INTERNAL_API_BASE_URL`.
+  3. Add the V2 ExternalSecret manifest to `app/kustomization.yaml` and reconcile Flux.
+  4. Verify the new Secret renders and the pod remains healthy.
+- Safe rollback sequence:
+  1. Remove the V2 ExternalSecret manifest from `app/kustomization.yaml`.
+  2. Reconcile Flux.
+  3. Confirm the pod still starts from `vrm-mqtt-bridge-secret` only.
+  4. Leave the legacy per-boat stage items in place until V2 has been proven end to end.
