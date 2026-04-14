@@ -4,6 +4,8 @@ kind: HelmRelease
 metadata:
   name: vrm-mqtt-bridge
   namespace: home-automation
+  annotations:
+    reconcile.fluxcd.io/requestedAt: "2026-04-13T21:16:00-06:00"
 spec:
   interval: 30m
   chart:
