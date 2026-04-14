@@ -55,7 +55,7 @@ spec:
           app:
             image:
               repository: ghcr.io/scottking2/vrm-mqtt-bridge
-              tag: "0f4d1f7"
+              tag: "7f1d9a2"
               pullPolicy: IfNotPresent
             securityContext:
               allowPrivilegeEscalation: false
