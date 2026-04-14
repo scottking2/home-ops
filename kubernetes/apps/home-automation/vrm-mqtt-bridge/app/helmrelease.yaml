@@ -71,7 +71,9 @@ spec:
               LOCAL_MQTT_PASSWORD: kW46DuzaWd.DzY4T
               DB_WRITE_INTERVAL: "30"
               VICTRON_INTERNAL_API_BASE_URL: https://stage.lakemates.com
+              VICTRON_CONFIG_PULL_ENABLED: "true"
               VICTRON_INTERNAL_API_CONFIG_PATH: /api/internal/victron/config
+              VICTRON_INTERNAL_API_INGEST_PATH: /api/internal/victron/ingest
               VICTRON_INTERNAL_API_STATUS_PATH: /api/internal/victron/status
             envFrom:
               - secretRef:

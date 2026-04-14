@@ -18,8 +18,6 @@ Shared 1Password item `lakemates victron stage shared` should provide:
 - `DATABASE_NAME`
 - `DATABASE_USER`
 - `DATABASE_PASS`
-- `LAKEMATES_PUSH_URL` (stage ingest endpoint, e.g. `https://stage.lakemates.com/api/victron/ingest`)
-- `LAKEMATES_INGEST_SECRET` (shared secret sent as `X-Ingest-Secret`)
 
 Current shared trust item is `lakemates victron v2 shared` and should provide:
 - `VICTRON_ENCRYPTION_KEY`
@@ -36,13 +34,14 @@ The password file is sourced via the `mosquitto-auth` ExternalSecret, and the br
 - numeric values are appended to `victron_history`
 - current values are also republished to `victron/<metric>` on local Mosquitto
 - the bridge fetches enabled integrations from Lakemates and decrypts per-boat credentials in memory
-- each poll pushes snapshots into Lakemates for the Solar & Batteries page
+- each poll pushes snapshots into Lakemates through the internal machine-auth ingest API
 - the pod looks for `VICTRON_ENCRYPTION_KEY`, `VICTRON_BRIDGE_MACHINE_TOKEN`, and `VICTRON_INTERNAL_API_BASE_URL` from the shared `vrm-mqtt-bridge-v2-shared` Secret
 
 ## Runtime contract
 
 - Home-ops should provide shared runtime trust and database/MQTT config only.
 - Per-boat VRM credentials live in Lakemates and are served to the bridge through the internal machine-auth config API.
+- Telemetry returns to Lakemates through the internal machine-auth ingest API keyed by `boatKey`.
 - New boats should not require manifest edits or new per-boat ExternalSecret entries.
 
 ## Notes
