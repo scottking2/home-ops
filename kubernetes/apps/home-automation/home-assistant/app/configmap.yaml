@@ -202,10 +202,10 @@ data:
             entity_id: cover.ratgdo32_fb826c_door
 
     # --- AUTO-CLOSE: Door left open 45 minutes ---
-    # No time guard — if the door is left open at 3am, we still want it to close
+    # Safety guard: only auto-close late at night so kids are not surprised during the day/evening.
     - id: garage_auto_close_45min
-      alias: "Garage - Auto-close after 45 minutes open"
-      description: "Flashes light at 40 min, closes at 45 min if still open, then sends normal notification"
+      alias: "Garage - Auto-close after 45 minutes open after 10 PM"
+      description: "After 10 PM, flashes light at 40 min, closes at 45 min if still open, then sends notification"
       mode: single
       trigger:
         - platform: state
@@ -213,6 +213,8 @@ data:
           to: "open"
           for: "00:40:00"
       condition:
+        - condition: time
+          after: "22:00:00"
         - condition: state
           entity_id: cover.ratgdo32_fb826c_door
           state: "open"

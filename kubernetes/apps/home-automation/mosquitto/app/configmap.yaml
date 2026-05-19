@@ -15,5 +15,6 @@ data:
   acl: |
     user telemetry
     topic readwrite victron/#
+    topic readwrite homeassistant/#
     topic readwrite teslamate/#
     topic readwrite royce/#
