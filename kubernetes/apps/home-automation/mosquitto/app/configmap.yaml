@@ -7,7 +7,7 @@ data:
   mosquitto.conf: |
     listener 1883
     allow_anonymous false
-    password_file /mosquitto/config/passwd
+    password_file /mosquitto/generated/passwd
     persistence true
     persistence_location /mosquitto/data
     autosave_interval 1800
@@ -15,3 +15,5 @@ data:
   acl: |
     user telemetry
     topic readwrite victron/#
+    topic readwrite teslamate/#
+    topic readwrite royce/#
