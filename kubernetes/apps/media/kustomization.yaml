@@ -6,3 +6,9 @@ resources:
   - ./plex/ks.yaml
   # - ./bookworm/ks.yaml
   - ./tautulli/ks.yaml
+  - ./qbittorrent/ks.yaml
+  - ./sonarr/ks.yaml
+  - ./radarr/ks.yaml
+  - ./bazarr/ks.yaml
+  - ./prowlarr/ks.yaml
+  # - ./profilarr/ks.yaml  # no public image yet (closed beta)
