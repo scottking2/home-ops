@@ -26,9 +26,10 @@ spec:
                 - -ec
                 - |
                   apk add --no-cache openssh-client >/dev/null
-                  chmod 600 /ssh/id_ed25519
+                  cp /ssh/id_ed25519 /tmp/id_ed25519
+                  chmod 600 /tmp/id_ed25519
                   ssh \
-                    -i /ssh/id_ed25519 \
+                    -i /tmp/id_ed25519 \
                     -o BatchMode=yes \
                     -o StrictHostKeyChecking=accept-new \
                     -o UserKnownHostsFile=/tmp/known_hosts \
