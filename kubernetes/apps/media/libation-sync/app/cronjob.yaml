@@ -1,0 +1,45 @@
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: libation-sync
+  namespace: media
+spec:
+  schedule: "0 2 * * *"
+  timeZone: America/Denver
+  concurrencyPolicy: Forbid
+  startingDeadlineSeconds: 3600
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      backoffLimit: 1
+      template:
+        spec:
+          restartPolicy: Never
+          containers:
+            - name: sync
+              image: alpine:3.20
+              imagePullPolicy: IfNotPresent
+              command:
+                - /bin/sh
+                - -ec
+                - |
+                  apk add --no-cache openssh-client >/dev/null
+                  chmod 600 /ssh/id_ed25519
+                  ssh \
+                    -i /ssh/id_ed25519 \
+                    -o BatchMode=yes \
+                    -o StrictHostKeyChecking=accept-new \
+                    -o UserKnownHostsFile=/tmp/known_hosts \
+                    -o ConnectTimeout=30 \
+                    sking@10.0.0.150 sync
+              volumeMounts:
+                - name: ssh-key
+                  mountPath: /ssh
+                  readOnly: true
+          volumes:
+            - name: ssh-key
+              secret:
+                secretName: libation-sync-ssh
+                defaultMode: 0400
