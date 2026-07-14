@@ -1,0 +1,117 @@
+---
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: qbittorrent
+  namespace: media
+spec:
+  interval: 30m
+  chart:
+    spec:
+      chart: app-template
+      version: 4.6.2
+      sourceRef:
+        kind: HelmRepository
+        name: bjw-s
+        namespace: flux-system
+  maxHistory: 2
+  install:
+    remediation:
+      retries: 3
+  upgrade:
+    cleanupOnFail: true
+    remediation:
+      retries: 3
+  uninstall:
+    keepHistory: false
+  values:
+    controllers:
+      main:
+        annotations:
+          reloader.stakater.com/auto: "true"
+        containers:
+          main:
+            image:
+              repository: lscr.io/linuxserver/qbittorrent
+              tag: latest
+            env:
+              TZ: America/Denver
+              PUID: "568"
+              PGID: "568"
+              WEBUI_PORT: &port 8080
+          gluetun:
+            image:
+              repository: qmcgaw/gluetun
+              tag: latest
+            env:
+              VPN_SERVICE_PROVIDER: mullvad
+              VPN_TYPE: wireguard
+              WIREGUARD_ADDRESSES: "10.164.77.10/32"
+              SERVER_COUNTRIES: "USA"
+              WIREGUARD_MTU: "1320"
+              FIREWALL_INBOUND_SUBNETS: "10.69.0.0/16,10.96.0.0/16,10.0.0.0/24"
+              FIREWALL_INPUT_PORTS: "8080"
+              FIREWALL_OUTBOUND_SUBNETS: "10.96.0.0/16,10.69.0.0/16,10.96.0.10/32"
+              DNS_ADDRESS: "10.96.0.10"
+            envFrom:
+              - secretRef:
+                  name: mullvad-wireguard-secret
+            securityContext:
+              capabilities:
+                add:
+                  - NET_ADMIN
+        pod:
+          securityContext:
+            fsGroup: 568
+            fsGroupChangePolicy: OnRootMismatch
+    service:
+      main:
+        controller: main
+        ports:
+          http:
+            port: *port
+    ingress:
+      main:
+        enabled: true
+        className: internal
+        hosts:
+          - host: &host "qbittorrent.${SECRET_DOMAIN}"
+            paths:
+              - path: /
+                service:
+                  identifier: main
+                  port: http
+        tls:
+          - hosts:
+              - *host
+    persistence:
+      config:
+        type: persistentVolumeClaim
+        storageClass: iscsi-csi
+        accessMode: ReadWriteOnce
+        size: 1Gi
+        advancedMounts:
+          main:
+            main:
+              - path: /config
+      downloads:
+        type: nfs
+        server: ${SECRET_NFS_SERVER}
+        path: /volume1/arr-downloads
+        advancedMounts:
+          main:
+            main:
+              - path: /downloads
+      gluetun-data:
+        type: emptyDir
+        advancedMounts:
+          main:
+            gluetun:
+              - path: /tmp/gluetun
+      tun-device:
+        type: hostPath
+        hostPath: /dev/net/tun
+        advancedMounts:
+          main:
+            gluetun:
+              - path: /dev/net/tun
