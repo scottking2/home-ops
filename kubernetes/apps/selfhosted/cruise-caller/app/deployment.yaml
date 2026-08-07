@@ -1,0 +1,91 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cruise-caller
+  namespace: selfhosted
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: cruise-caller
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: cruise-caller
+    spec:
+      automountServiceAccountToken: false
+      enableServiceLinks: false
+      securityContext:
+        fsGroup: 1000
+        runAsGroup: 1000
+        runAsNonRoot: true
+        runAsUser: 1000
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: app
+          image: ghcr.io/scottking2/home-ops/cruise-caller:main
+          imagePullPolicy: Always
+          env:
+            - name: TZ
+              value: America/Denver
+            - name: PORT
+              value: "8080"
+            - name: DATA_PATH
+              value: /data/state.json
+            - name: PUBLIC_BASE_URL
+              value: "https://cruise-caller.${SECRET_DOMAIN}"
+            - name: OPENAI_REALTIME_MODEL
+              value: gpt-realtime-2.1
+            - name: DEFAULT_CALL_MINUTES
+              value: "6"
+            - name: MAX_CALL_MINUTES
+              value: "12"
+          envFrom:
+            - secretRef:
+                name: cruise-caller-admin-secret
+            - secretRef:
+                name: cruise-caller-openai-secret
+                optional: true
+            - secretRef:
+                name: cruise-caller-twilio-secret
+                optional: true
+          ports:
+            - name: http
+              containerPort: 8080
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+            readOnlyRootFilesystem: true
+          resources:
+            requests:
+              cpu: 50m
+              memory: 128Mi
+            limits:
+              memory: 512Mi
+          readinessProbe:
+            httpGet:
+              path: /api/health
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 15
+          livenessProbe:
+            httpGet:
+              path: /api/health
+              port: http
+            initialDelaySeconds: 20
+            periodSeconds: 30
+          volumeMounts:
+            - name: data
+              mountPath: /data
+            - name: tmp
+              mountPath: /tmp
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: cruise-caller-data
+        - name: tmp
+          emptyDir: {}

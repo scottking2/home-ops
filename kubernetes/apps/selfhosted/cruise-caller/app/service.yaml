@@ -1,0 +1,13 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: cruise-caller
+  namespace: selfhosted
+spec:
+  selector:
+    app.kubernetes.io/name: cruise-caller
+  ports:
+    - name: http
+      port: 80
+      targetPort: http

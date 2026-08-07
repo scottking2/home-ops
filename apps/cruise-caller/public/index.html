@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Cruise Caller</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <main class="shell">
+      <section class="topbar">
+        <div>
+          <p class="eyebrow">Family voice scheduler</p>
+          <h1>Cruise Caller</h1>
+        </div>
+        <div class="status" id="readyStatus">Checking</div>
+      </section>
+
+      <section class="panel auth-panel" id="authPanel">
+        <div>
+          <h2>Unlock scheduler</h2>
+          <p>Use the admin token from the Kubernetes secret to manage calls.</p>
+        </div>
+        <form id="authForm" class="inline-form">
+          <input id="adminToken" name="adminToken" type="password" autocomplete="current-password" placeholder="Admin token" />
+          <button type="submit">Unlock</button>
+        </form>
+      </section>
+
+      <section class="workspace hidden" id="workspace">
+        <aside class="panel controls">
+          <form id="callForm">
+            <label>
+              Phone number
+              <input id="phoneNumber" name="phoneNumber" type="tel" placeholder="+18015551212" />
+            </label>
+
+            <fieldset>
+              <legend>Kids on the call</legend>
+              <label class="check"><input type="checkbox" name="profiles" value="age_9" checked /> 9 year old</label>
+              <label class="check"><input type="checkbox" name="profiles" value="age_6" checked /> 6 year old</label>
+              <label class="check"><input type="checkbox" name="profiles" value="age_1_5" checked /> 1.5 year old</label>
+            </fieldset>
+
+            <label>
+              Call theme
+              <textarea id="topic" name="topic" rows="5">Ask what everyone is excited to do on the ship, play a short cruise countdown game, and talk about sleeping in a cozy stateroom.</textarea>
+            </label>
+
+            <label>
+              Length
+              <input id="durationMinutes" name="durationMinutes" type="number" min="1" max="12" value="6" />
+            </label>
+
+            <label>
+              Schedule time
+              <input id="scheduledFor" name="scheduledFor" type="datetime-local" />
+            </label>
+
+            <div class="button-row">
+              <button type="button" id="callNow">Call now</button>
+              <button type="submit" class="secondary">Schedule</button>
+            </div>
+          </form>
+        </aside>
+
+        <section class="main-column">
+          <section class="panel">
+            <div class="section-heading">
+              <h2>Pick a voice</h2>
+              <p>Original character-adjacent personas, tuned to stay kid-safe and non-impersonating.</p>
+            </div>
+            <div id="personaGrid" class="persona-grid"></div>
+          </section>
+
+          <section class="panel">
+            <div class="section-heading">
+              <h2>Scheduled calls</h2>
+              <button type="button" class="ghost" id="refresh">Refresh</button>
+            </div>
+            <div id="scheduleList" class="list"></div>
+          </section>
+
+          <section class="panel">
+            <div class="section-heading">
+              <h2>Recent calls</h2>
+            </div>
+            <div id="callList" class="list"></div>
+          </section>
+        </section>
+      </section>
+    </main>
+
+    <script src="/app.js" type="module"></script>
+  </body>
+</html>
