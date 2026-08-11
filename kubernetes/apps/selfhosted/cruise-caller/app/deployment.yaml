@@ -25,7 +25,7 @@ spec:
           type: RuntimeDefault
       containers:
         - name: app
-          image: ghcr.io/scottking2/home-ops/cruise-caller:main
+          image: ghcr.io/scottking2/home-ops/cruise-caller:295928dcc05b16f42665b93d27ac4e31dcc82ff8
           imagePullPolicy: Always
           env:
             - name: TZ
