@@ -15,8 +15,7 @@ const els = {
   callList: document.querySelector("#callList"),
   callForm: document.querySelector("#callForm"),
   callNow: document.querySelector("#callNow"),
-  refresh: document.querySelector("#refresh"),
-  phoneNumber: document.querySelector("#phoneNumber")
+  refresh: document.querySelector("#refresh")
 };
 
 els.authForm.addEventListener("submit", async (event) => {
@@ -49,18 +48,19 @@ async function loadState() {
 }
 
 function render() {
-  const { ready, settings } = state.data;
+  const { ready } = state.data;
   els.readyStatus.textContent = ready.ok ? "Ready" : `Missing ${ready.missing.length}`;
   els.readyStatus.className = `status ${ready.ok ? "ready" : "blocked"}`;
-  if (!els.phoneNumber.value) els.phoneNumber.value = settings.defaultPhoneNumber || "";
 
   els.personaGrid.innerHTML = Object.values(state.data.personas)
-    .map((persona) => `
+    .map(
+      (persona) => `
       <button type="button" class="persona ${persona.id === state.selectedPersona ? "selected" : ""}" style="--accent:${persona.color}" data-persona="${persona.id}">
         <strong>${escapeHtml(persona.name)}</strong>
         <span>${escapeHtml(persona.description)}</span>
       </button>
-    `)
+    `
+    )
     .join("");
 
   for (const button of els.personaGrid.querySelectorAll("button")) {
@@ -72,7 +72,7 @@ function render() {
 
   els.scheduleList.innerHTML = state.data.schedules.length
     ? state.data.schedules.map(renderSchedule).join("")
-    : `<div class="empty">No calls scheduled yet.</div>`;
+    : `<div class="empty">No scheduled join links yet.</div>`;
 
   for (const button of els.scheduleList.querySelectorAll("[data-cancel]")) {
     button.addEventListener("click", async () => {
@@ -81,9 +81,25 @@ function render() {
     });
   }
 
+  for (const button of els.scheduleList.querySelectorAll("[data-copy]")) {
+    button.addEventListener("click", async () => {
+      await navigator.clipboard.writeText(button.dataset.copy);
+      button.textContent = "Copied";
+      setTimeout(() => {
+        button.textContent = "Copy link";
+      }, 1200);
+    });
+  }
+
   els.callList.innerHTML = state.data.calls.length
     ? state.data.calls.map(renderCall).join("")
-    : `<div class="empty">No calls placed yet.</div>`;
+    : `<div class="empty">No calls yet.</div>`;
+
+  for (const button of els.callList.querySelectorAll("[data-open]")) {
+    button.addEventListener("click", () => {
+      window.open(button.dataset.open, "_blank", "noopener");
+    });
+  }
 }
 
 async function scheduleCall() {
@@ -92,26 +108,41 @@ async function scheduleCall() {
     alert("Pick a schedule time first.");
     return;
   }
-  await api("/api/schedules", {
+  const response = await api("/api/schedules", {
     method: "POST",
     body: JSON.stringify(payload)
   });
+  if (!response.ok) {
+    const err = await response.json().catch(() => ({}));
+    alert(err.error || "Could not schedule");
+    return;
+  }
   els.callForm.reset();
   await loadState();
 }
 
 async function callNow() {
-  await api("/api/calls", {
+  const response = await api("/api/calls", {
     method: "POST",
     body: JSON.stringify(formPayload())
   });
+  if (!response.ok) {
+    const err = await response.json().catch(() => ({}));
+    alert(err.error || "Could not start call");
+    return;
+  }
+  const data = await response.json();
+  const joinUrl = data.joinUrl || data.call?.joinUrl;
+  if (joinUrl) {
+    window.location.href = joinUrl;
+    return;
+  }
   await loadState();
 }
 
 function formPayload() {
   const form = new FormData(els.callForm);
   return {
-    phoneNumber: form.get("phoneNumber"),
     profileIds: form.getAll("profiles"),
     personaId: state.selectedPersona,
     topic: form.get("topic"),
@@ -121,28 +152,38 @@ function formPayload() {
 }
 
 function renderSchedule(schedule) {
+  const joinUrl = `${window.location.origin}/join.html?scheduleId=${encodeURIComponent(schedule.id)}&token=${encodeURIComponent(schedule.token || "")}`;
   return `
     <div class="row">
       <div>
         <strong>${formatDate(schedule.scheduledFor)} · ${escapeHtml(personaName(schedule.personaId))}</strong>
-        <small>${escapeHtml(schedule.topic)} · ${escapeHtml(schedule.phoneNumber)}</small>
+        <small>${escapeHtml(schedule.topic)}</small>
       </div>
       <div class="button-row">
         <span class="badge">${escapeHtml(schedule.status)}</span>
-        ${schedule.status === "pending" ? `<button type="button" class="ghost" data-cancel="${schedule.id}">Cancel</button>` : ""}
+        ${
+          schedule.status === "pending"
+            ? `<button type="button" class="ghost" data-copy="${escapeHtml(joinUrl)}">Copy link</button>
+               <button type="button" class="ghost" data-cancel="${schedule.id}">Cancel</button>`
+            : ""
+        }
       </div>
     </div>
   `;
 }
 
 function renderCall(call) {
+  const joinUrl = call.joinUrl || `${window.location.origin}/join.html?callId=${encodeURIComponent(call.id)}&token=${encodeURIComponent(call.token || "")}`;
   return `
     <div class="row">
       <div>
         <strong>${formatDate(call.createdAt)} · ${escapeHtml(personaName(call.personaId))}</strong>
-        <small>${escapeHtml(call.error || call.topic)} · ${escapeHtml(call.phoneNumber || "")}</small>
+        <small>${escapeHtml(call.error || call.topic)}</small>
       </div>
-      <span class="badge">${escapeHtml(call.twilioStatus || call.status)}</span>
+      <div class="button-row">
+        <span class="badge">${escapeHtml(call.status)}</span>
+        ${call.status === "created" || call.status === "ready" ? `<button type="button" class="ghost" data-open="${escapeHtml(joinUrl)}">Open</button>` : ""}
+      </div>
     </div>
   `;
 }
@@ -189,9 +230,9 @@ function formatDate(value) {
 
 function escapeHtml(value) {
   return String(value ?? "")
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#039;");
+    .replaceAll("&", "&" + "amp;")
+    .replaceAll("<", "&" + "lt;")
+    .replaceAll(">", "&" + "gt;")
+    .replaceAll('"', "&" + "quot;")
+    .replaceAll("'", "&" + "#039;");
 }

@@ -48,9 +48,6 @@ spec:
             - secretRef:
                 name: cruise-caller-openai-secret
                 optional: true
-            - secretRef:
-                name: cruise-caller-twilio-secret
-                optional: true
           ports:
             - name: http
               containerPort: 8080

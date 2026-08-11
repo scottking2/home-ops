@@ -10,7 +10,7 @@
     <main class="shell">
       <section class="topbar">
         <div>
-          <p class="eyebrow">Family voice scheduler</p>
+          <p class="eyebrow">Browser voice · no phone number needed</p>
           <h1>Cruise Caller</h1>
         </div>
         <div class="status" id="readyStatus">Checking</div>
@@ -30,11 +30,6 @@
       <section class="workspace hidden" id="workspace">
         <aside class="panel controls">
           <form id="callForm">
-            <label>
-              Phone number
-              <input id="phoneNumber" name="phoneNumber" type="tel" placeholder="+18015551212" />
-            </label>
-
             <fieldset>
               <legend>Kids on the call</legend>
               <label class="check"><input type="checkbox" name="profiles" value="age_9" checked /> 9 year old</label>
@@ -48,7 +43,7 @@
             </label>
 
             <label>
-              Length
+              Length (minutes)
               <input id="durationMinutes" name="durationMinutes" type="number" min="1" max="12" value="6" />
             </label>
 
@@ -59,8 +54,13 @@
 
             <div class="button-row">
               <button type="button" id="callNow">Call now</button>
-              <button type="submit" class="secondary">Schedule</button>
+              <button type="submit" class="secondary">Schedule join link</button>
             </div>
+
+            <p class="hint">
+              Browser voice only. Click Call now → phone rings → tap Answer → live AI conversation.
+              Uses your OpenAI API key (not ChatGPT Plus).
+            </p>
           </form>
         </aside>
 
@@ -68,14 +68,14 @@
           <section class="panel">
             <div class="section-heading">
               <h2>Pick a voice</h2>
-              <p>Original character-adjacent personas, tuned to stay kid-safe and non-impersonating.</p>
+              <p>Original character-adjacent personas. Not Disney impersonations.</p>
             </div>
             <div id="personaGrid" class="persona-grid"></div>
           </section>
 
           <section class="panel">
             <div class="section-heading">
-              <h2>Scheduled calls</h2>
+              <h2>Scheduled join links</h2>
               <button type="button" class="ghost" id="refresh">Refresh</button>
             </div>
             <div id="scheduleList" class="list"></div>
@@ -90,7 +90,6 @@
         </section>
       </section>
     </main>
-
     <script src="/app.js" type="module"></script>
   </body>
 </html>

@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>Cruise Call</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body class="join-body">
+    <main class="join-shell">
+      <section class="call-stage" id="callStage" data-phase="idle">
+        <p class="eyebrow" id="personaLabel">Cruise Caller</p>
+        <div class="avatar-ring" id="avatarRing" aria-hidden="true">
+          <div class="avatar-core">🚢</div>
+        </div>
+        <h1 id="statusTitle">Ready when you are</h1>
+        <p id="statusDetail">Tap Call to start a browser voice call. It will ring first, then you answer.</p>
+
+        <div class="call-actions">
+          <button type="button" class="call-btn primary" id="startBtn">Call</button>
+          <button type="button" class="call-btn answer hidden" id="answerBtn">Answer</button>
+          <button type="button" class="call-btn decline hidden" id="declineBtn">Decline</button>
+          <button type="button" class="call-btn decline hidden" id="hangupBtn">Hang up</button>
+        </div>
+
+        <p class="hint" id="topicHint"></p>
+        <p class="error hidden" id="errorBox"></p>
+      </section>
+      <audio id="remoteAudio" autoplay playsinline></audio>
+    </main>
+    <script src="/join.js" type="module"></script>
+  </body>
+</html>

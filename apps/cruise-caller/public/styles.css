@@ -99,16 +99,22 @@ h2 {
 }
 
 .auth-panel p,
-.section-heading p {
+.section-heading p,
+.hint {
   margin-bottom: 0;
   color: #596970;
   font-size: 0.93rem;
+}
+
+.hint {
+  line-height: 1.4;
 }
 
 .inline-form,
 .button-row {
   display: flex;
   gap: 10px;
+  flex-wrap: wrap;
 }
 
 .workspace {
@@ -219,8 +225,14 @@ button:disabled {
 
 .persona-grid {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 10px;
+}
+
+@media (min-width: 1100px) {
+  .persona-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
 }
 
 .persona {
@@ -293,7 +305,142 @@ button:disabled {
 }
 
 .hidden {
-  display: none;
+  display: none !important;
+}
+
+/* Join / phone UI */
+.join-body {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  background:
+    radial-gradient(circle at top, rgba(29, 122, 140, 0.18), transparent 40%),
+    linear-gradient(180deg, #102832, #163c4a 45%, #0d1f27);
+  color: #f7f4ea;
+}
+
+.join-shell {
+  width: min(440px, calc(100vw - 24px));
+  padding: 24px 0;
+}
+
+.call-stage {
+  text-align: center;
+  padding: 28px 22px 24px;
+  border-radius: 28px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.35);
+  backdrop-filter: blur(10px);
+}
+
+.call-stage .eyebrow {
+  color: rgba(247, 244, 234, 0.72);
+}
+
+.call-stage h1 {
+  margin: 12px 0 8px;
+  font-size: clamp(1.7rem, 6vw, 2.3rem);
+}
+
+.call-stage p {
+  color: rgba(247, 244, 234, 0.82);
+}
+
+.avatar-ring {
+  width: 148px;
+  height: 148px;
+  margin: 18px auto;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  background: rgba(255, 255, 255, 0.08);
+  border: 3px solid rgba(255, 255, 255, 0.18);
+  position: relative;
+}
+
+.avatar-ring::before,
+.avatar-ring::after {
+  content: "";
+  position: absolute;
+  inset: -10px;
+  border-radius: inherit;
+  border: 2px solid rgba(125, 211, 252, 0.35);
+  opacity: 0;
+}
+
+.avatar-ring.ringing::before,
+.avatar-ring.ringing::after {
+  animation: pulse-ring 1.8s ease-out infinite;
+}
+
+.avatar-ring.ringing::after {
+  animation-delay: 0.6s;
+}
+
+.avatar-ring.live {
+  border-color: #7dd3fc;
+  box-shadow: 0 0 0 8px rgba(125, 211, 252, 0.12);
+}
+
+.avatar-core {
+  width: 104px;
+  height: 104px;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  font-size: 2.6rem;
+  background: linear-gradient(160deg, #f8e7b0, #f0c14a 55%, #d4a017);
+  color: #163c4a;
+}
+
+.call-actions {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin: 22px 0 10px;
+}
+
+.call-btn {
+  min-width: 120px;
+  border-radius: 999px;
+  padding: 14px 22px;
+  font-size: 1rem;
+}
+
+.call-btn.primary {
+  background: #1d7a8c;
+}
+
+.call-btn.answer {
+  background: #2f9e62;
+}
+
+.call-btn.decline {
+  background: #b34059;
+}
+
+.call-stage .hint {
+  color: rgba(247, 244, 234, 0.7);
+  margin-top: 14px;
+}
+
+.call-stage .error {
+  margin-top: 12px;
+  color: #ffb4a8;
+  font-weight: 700;
+}
+
+@keyframes pulse-ring {
+  0% {
+    transform: scale(0.92);
+    opacity: 0.7;
+  }
+  100% {
+    transform: scale(1.25);
+    opacity: 0;
+  }
 }
 
 @media (max-width: 860px) {
@@ -310,10 +457,6 @@ button:disabled {
 
   .controls {
     position: static;
-  }
-
-  .persona-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 

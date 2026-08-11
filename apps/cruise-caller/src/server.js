@@ -1,11 +1,9 @@
 import Fastify from "fastify";
-import websocket from "@fastify/websocket";
 import staticFiles from "@fastify/static";
 import fs from "node:fs/promises";
 import path from "node:path";
 import crypto from "node:crypto";
 import { fileURLToPath } from "node:url";
-import WebSocket from "ws";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -14,9 +12,9 @@ const HOST = process.env.HOST || "0.0.0.0";
 const DATA_PATH = process.env.DATA_PATH || "/data/state.json";
 const PUBLIC_BASE_URL = normalizeBaseUrl(process.env.PUBLIC_BASE_URL || "");
 const OPENAI_MODEL = process.env.OPENAI_REALTIME_MODEL || "gpt-realtime-2.1";
-const OPENAI_WS_URL = process.env.OPENAI_REALTIME_WS_URL || "wss://api.openai.com/v1/realtime";
 const DEFAULT_CALL_MINUTES = Number(process.env.DEFAULT_CALL_MINUTES || 6);
 const MAX_CALL_MINUTES = Number(process.env.MAX_CALL_MINUTES || 12);
+const RING_SECONDS = Number(process.env.RING_SECONDS || 4);
 
 const personas = {
   clubhouse_captain: {
@@ -67,7 +65,6 @@ const state = {
   schedules: [],
   calls: [],
   settings: {
-    defaultPhoneNumber: process.env.DEFAULT_TO_NUMBER || "",
     cruiseMonth: "November",
     cruiseShip: "Disney Treasure"
   }
@@ -80,7 +77,6 @@ const fastify = Fastify({
   }
 });
 
-await fastify.register(websocket);
 await fastify.register(staticFiles, {
   root: path.join(__dirname, "..", "public")
 });
@@ -88,6 +84,8 @@ await fastify.register(staticFiles, {
 fastify.addHook("preHandler", async (request, reply) => {
   if (!request.url.startsWith("/api/")) return;
   if (request.url === "/api/health") return;
+  // Public join pages mint tokens with a call token, not admin token.
+  if (request.url.startsWith("/api/browser-session")) return;
   const expected = process.env.ADMIN_TOKEN;
   if (!expected) {
     return reply.code(503).send({ error: "ADMIN_TOKEN is not configured" });
@@ -98,21 +96,23 @@ fastify.addHook("preHandler", async (request, reply) => {
   }
 });
 
-fastify.get("/api/health", async () => ({ ok: true }));
+fastify.get("/api/health", async () => ({ ok: true, mode: "browser-voice" }));
 
 fastify.get("/api/state", async () => ({
+  mode: "browser-voice",
   personas,
   profiles: defaultProfiles,
   schedules: state.schedules,
   calls: state.calls.slice(0, 50),
   settings: state.settings,
+  ringSeconds: RING_SECONDS,
   ready: readiness()
 }));
 
 fastify.post("/api/settings", async (request) => {
   state.settings = {
     ...state.settings,
-    ...pick(request.body || {}, ["defaultPhoneNumber", "cruiseMonth", "cruiseShip"])
+    ...pick(request.body || {}, ["cruiseMonth", "cruiseShip"])
   };
   await saveState();
   return { settings: state.settings };
@@ -122,18 +122,23 @@ fastify.post("/api/calls", async (request, reply) => {
   const payload = request.body || {};
   const call = makeCallRecord({
     source: "manual",
-    phoneNumber: payload.phoneNumber || state.settings.defaultPhoneNumber,
     personaId: payload.personaId,
     profileIds: payload.profileIds,
     topic: payload.topic,
     durationMinutes: payload.durationMinutes
   });
 
-  if (!call.phoneNumber) return reply.code(400).send({ error: "phoneNumber is required" });
+  if (!process.env.OPENAI_API_KEY) {
+    return reply.code(503).send({ error: "OPENAI_API_KEY is not configured" });
+  }
+
   state.calls.unshift(call);
   await saveState();
-  await placeCall(call);
-  return { call };
+  return {
+    call,
+    joinUrl: joinUrlFor(call),
+    ringSeconds: RING_SECONDS
+  };
 });
 
 fastify.post("/api/schedules", async (request, reply) => {
@@ -142,23 +147,24 @@ fastify.post("/api/schedules", async (request, reply) => {
   if (Number.isNaN(scheduledFor.valueOf())) {
     return reply.code(400).send({ error: "scheduledFor must be a valid date" });
   }
-  if (!payload.phoneNumber && !state.settings.defaultPhoneNumber) {
-    return reply.code(400).send({ error: "phoneNumber is required" });
-  }
+
   const schedule = {
     id: crypto.randomUUID(),
     status: "pending",
     createdAt: new Date().toISOString(),
     scheduledFor: scheduledFor.toISOString(),
-    phoneNumber: payload.phoneNumber || state.settings.defaultPhoneNumber,
     personaId: validPersona(payload.personaId).id,
     profileIds: validProfileIds(payload.profileIds),
     topic: String(payload.topic || "Talk about our upcoming cruise and ask what they are excited about.").slice(0, 500),
-    durationMinutes: clampCallMinutes(payload.durationMinutes)
+    durationMinutes: clampCallMinutes(payload.durationMinutes),
+    token: crypto.randomBytes(18).toString("hex")
   };
   state.schedules.unshift(schedule);
   await saveState();
-  return { schedule };
+  return {
+    schedule,
+    joinUrl: `${PUBLIC_BASE_URL || ""}/join.html?scheduleId=${encodeURIComponent(schedule.id)}&token=${encodeURIComponent(schedule.token)}`
+  };
 });
 
 fastify.delete("/api/schedules/:id", async (request, reply) => {
@@ -170,329 +176,235 @@ fastify.delete("/api/schedules/:id", async (request, reply) => {
   return { schedule };
 });
 
-fastify.get("/twilio/voice", async (request, reply) => {
-  const call = lookupCall(request.query.callId, request.query.token);
-  if (!call) {
-    reply.type("text/xml");
-    return twiml(`<Say voice="alice">Sorry, this cruise call is not available.</Say>`);
+// Mint an OpenAI Realtime ephemeral client secret for browser WebRTC.
+fastify.post("/api/browser-session", async (request, reply) => {
+  const body = request.body || {};
+  let call = null;
+
+  if (body.callId && body.token) {
+    call = lookupCall(body.callId, body.token);
+    if (!call) return reply.code(404).send({ error: "Call not found" });
+  } else if (body.scheduleId && body.token) {
+    const schedule = state.schedules.find(
+      (item) => item.id === body.scheduleId && item.token === body.token && item.status !== "cancelled"
+    );
+    if (!schedule) return reply.code(404).send({ error: "Schedule not found" });
+    call = makeCallRecord({
+      source: "schedule",
+      scheduleId: schedule.id,
+      personaId: schedule.personaId,
+      profileIds: schedule.profileIds,
+      topic: schedule.topic,
+      durationMinutes: schedule.durationMinutes
+    });
+    state.calls.unshift(call);
+    schedule.status = "joined";
+    schedule.joinedAt = new Date().toISOString();
+    await saveState();
+  } else {
+    return reply.code(400).send({ error: "callId+token or scheduleId+token required" });
   }
 
-  call.twilioCallSid = request.query.CallSid || call.twilioCallSid;
-  call.status = "connected";
-  call.connectedAt = new Date().toISOString();
+  if (!process.env.OPENAI_API_KEY) {
+    return reply.code(503).send({ error: "OPENAI_API_KEY is not configured" });
+  }
+
+  const persona = validPersona(call.personaId);
+  const sessionConfig = {
+    type: "realtime",
+    model: OPENAI_MODEL,
+    instructions: buildInstructions(call, persona),
+    audio: {
+      input: {
+        turn_detection: { type: "semantic_vad" }
+      },
+      output: {
+        voice: persona.voice
+      }
+    }
+  };
+
+  const response = await fetch("https://api.openai.com/v1/realtime/client_secrets", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({ session: sessionConfig })
+  });
+
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    call.status = "failed";
+    call.error = data?.error?.message || `OpenAI client_secrets failed (${response.status})`;
+    await saveState();
+    return reply.code(502).send({ error: call.error, details: data });
+  }
+
+  call.status = "ready";
+  call.readyAt = new Date().toISOString();
   await saveState();
 
-  const streamUrl = `${PUBLIC_BASE_URL.replace(/^http/, "ws")}/twilio/media?callId=${encodeURIComponent(call.id)}&token=${encodeURIComponent(call.token)}`;
-  reply.type("text/xml");
-  return twiml(`
-    <Say voice="Polly.Joanna">Your cruise countdown call is connecting.</Say>
-    <Connect>
-      <Stream url="${escapeXml(streamUrl)}" />
-    </Connect>
-  `);
+  return {
+    call: publicCall(call),
+    persona,
+    ringSeconds: RING_SECONDS,
+    clientSecret: data.value || data.client_secret?.value || data.client_secret,
+    expiresAt: data.expires_at || data.client_secret?.expires_at,
+    model: OPENAI_MODEL,
+    greetingHint:
+      "The browser call just connected after a ring. Start with a short cheerful greeting, say you are an AI cruise countdown caller, and ask which kid wants to answer first."
+  };
 });
 
-fastify.get("/twilio/status", async (request) => {
-  const call = state.calls.find((item) => item.twilioCallSid === request.query.CallSid);
-  if (call) {
-    call.twilioStatus = request.query.CallStatus || call.twilioStatus;
-    call.updatedAt = new Date().toISOString();
-    await saveState();
+fastify.post("/api/calls/:id/complete", async (request, reply) => {
+  const call = state.calls.find((item) => item.id === request.params.id);
+  if (!call) return reply.code(404).send({ error: "Not found" });
+  if (request.body?.token && request.body.token !== call.token) {
+    return reply.code(401).send({ error: "Unauthorized" });
   }
-  return "OK";
-});
-
-fastify.get("/twilio/media", { websocket: true }, (socket, request) => {
-  const call = lookupCall(request.query.callId, request.query.token);
-  if (!call) {
-    socket.close(1008, "invalid call token");
-    return;
-  }
-  bridgeTwilioToOpenAI(socket, call).catch((error) => {
-    fastify.log.error({ err: error, callId: call.id }, "media bridge failed");
-    socket.close();
-  });
+  call.status = "completed";
+  call.completedAt = new Date().toISOString();
+  await saveState();
+  return { call: publicCall(call) };
 });
 
 await loadState();
-setInterval(() => {
-  runScheduler().catch((error) => fastify.log.error({ err: error }, "scheduler failed"));
-}, 30_000).unref();
-
 await fastify.listen({ host: HOST, port: PORT });
 
-async function bridgeTwilioToOpenAI(twilioSocket, call) {
-  const persona = validPersona(call.personaId);
-  let streamSid = null;
-  let greetingSent = false;
-  let openaiReady = false;
-
-  const openaiSocket = new WebSocket(`${OPENAI_WS_URL}?model=${encodeURIComponent(OPENAI_MODEL)}`, {
-    headers: {
-      Authorization: `Bearer ${process.env.OPENAI_API_KEY || ""}`,
-      "OpenAI-Beta": "realtime=v1"
-    }
-  });
-
-  openaiSocket.on("open", () => {
-    openaiReady = true;
-    openaiSocket.send(JSON.stringify({
-      type: "session.update",
-      session: {
-        type: "realtime",
-        model: OPENAI_MODEL,
-        output_modalities: ["audio"],
-        audio: {
-          input: {
-            format: { type: "audio/pcmu", rate: 8000 },
-            turn_detection: { type: "semantic_vad" }
-          },
-          output: {
-            format: { type: "audio/pcmu" },
-            voice: persona.voice
-          }
-        },
-        instructions: buildInstructions(call, persona)
-      }
-    }));
-  });
-
-  openaiSocket.on("message", (data) => {
-    const event = safeJson(data);
-    if (!event) return;
-    if ((event.type === "session.updated" || event.type === "session.created") && !greetingSent) {
-      greetingSent = true;
-      openaiSocket.send(JSON.stringify({
-        type: "conversation.item.create",
-        item: {
-          type: "message",
-          role: "user",
-          content: [{
-            type: "input_text",
-            text: "The phone call has connected. Start with a short cheerful greeting, explain you are an AI cruise countdown caller, and ask which kid wants to answer first."
-          }]
-        }
-      }));
-      openaiSocket.send(JSON.stringify({ type: "response.create", response: { output_modalities: ["audio"] } }));
-    }
-
-    if (event.type === "response.output_audio.delta" && streamSid) {
-      twilioSocket.send(JSON.stringify({
-        event: "media",
-        streamSid,
-        media: { payload: event.delta }
-      }));
-    }
-
-    if (event.type === "input_audio_buffer.speech_started" && streamSid) {
-      twilioSocket.send(JSON.stringify({ event: "clear", streamSid }));
-    }
-  });
-
-  openaiSocket.on("close", () => twilioSocket.close());
-  openaiSocket.on("error", (error) => {
-    fastify.log.error({ err: error, callId: call.id }, "openai websocket error");
-    twilioSocket.close();
-  });
-
-  twilioSocket.on("message", (data) => {
-    const event = safeJson(data);
-    if (!event) return;
-    if (event.event === "start") {
-      streamSid = event.start?.streamSid || event.streamSid;
-      call.streamSid = streamSid;
-      call.mediaStartedAt = new Date().toISOString();
-      saveState().catch((error) => fastify.log.error({ err: error }, "save failed"));
-      return;
-    }
-    if (event.event === "media" && event.media?.payload && openaiReady && openaiSocket.readyState === WebSocket.OPEN) {
-      openaiSocket.send(JSON.stringify({
-        type: "input_audio_buffer.append",
-        audio: event.media.payload
-      }));
-      return;
-    }
-    if (event.event === "stop") {
-      call.status = "completed";
-      call.completedAt = new Date().toISOString();
-      saveState().catch((error) => fastify.log.error({ err: error }, "save failed"));
-      openaiSocket.close();
-    }
-  });
-
-  twilioSocket.on("close", () => {
-    if (openaiSocket.readyState === WebSocket.OPEN) openaiSocket.close();
-  });
+function readiness() {
+  const missing = [];
+  if (!process.env.ADMIN_TOKEN) missing.push("ADMIN_TOKEN");
+  if (!process.env.OPENAI_API_KEY) missing.push("OPENAI_API_KEY");
+  return { ok: missing.length === 0, missing, mode: "browser-voice" };
 }
 
-async function placeCall(call) {
-  const missing = readiness().missing;
-  if (missing.length) {
-    call.status = "blocked";
-    call.error = `Missing configuration: ${missing.join(", ")}`;
-    await saveState();
-    return;
-  }
-
-  const url = `${PUBLIC_BASE_URL}/twilio/voice?callId=${encodeURIComponent(call.id)}&token=${encodeURIComponent(call.token)}`;
-  const statusCallback = `${PUBLIC_BASE_URL}/twilio/status`;
-  const form = new URLSearchParams({
-    To: call.phoneNumber,
-    From: process.env.TWILIO_FROM_NUMBER,
-    Url: url,
-    StatusCallback: statusCallback,
-    StatusCallbackEvent: "initiated ringing answered completed",
-    MachineDetection: "Enable"
-  });
-
-  const response = await fetch(`https://api.twilio.com/2010-04-01/Accounts/${process.env.TWILIO_ACCOUNT_SID}/Calls.json`, {
-    method: "POST",
-    headers: {
-      Authorization: `Basic ${Buffer.from(`${process.env.TWILIO_ACCOUNT_SID}:${process.env.TWILIO_AUTH_TOKEN}`).toString("base64")}`,
-      "Content-Type": "application/x-www-form-urlencoded"
-    },
-    body: form
-  });
-
-  const body = await response.json().catch(() => ({}));
-  if (!response.ok) {
-    call.status = "failed";
-    call.error = body.message || `Twilio returned ${response.status}`;
-    await saveState();
-    return;
-  }
-
-  call.status = "dialing";
-  call.twilioCallSid = body.sid;
-  call.placedAt = new Date().toISOString();
-  await saveState();
-}
-
-async function runScheduler() {
-  const now = Date.now();
-  for (const schedule of state.schedules) {
-    if (schedule.status !== "pending") continue;
-    if (new Date(schedule.scheduledFor).valueOf() > now) continue;
-    schedule.status = "running";
-    schedule.startedAt = new Date().toISOString();
-    const call = makeCallRecord({ ...schedule, source: "scheduled", scheduleId: schedule.id });
-    state.calls.unshift(call);
-    await saveState();
-    await placeCall(call);
-    schedule.status = call.status === "blocked" || call.status === "failed" ? call.status : "completed";
-    schedule.callId = call.id;
-    await saveState();
-  }
-}
-
-function makeCallRecord(input) {
+function makeCallRecord({ source, scheduleId, personaId, profileIds, topic, durationMinutes }) {
   return {
     id: crypto.randomUUID(),
-    token: crypto.randomBytes(24).toString("base64url"),
-    source: input.source || "manual",
-    scheduleId: input.scheduleId,
-    status: "queued",
+    token: crypto.randomBytes(18).toString("hex"),
+    source: source || "manual",
+    scheduleId: scheduleId || null,
+    status: "created",
     createdAt: new Date().toISOString(),
-    phoneNumber: input.phoneNumber,
-    personaId: validPersona(input.personaId).id,
-    profileIds: validProfileIds(input.profileIds),
-    topic: String(input.topic || "Talk about our upcoming Disney Treasure cruise in November.").slice(0, 500),
-    durationMinutes: clampCallMinutes(input.durationMinutes)
+    personaId: validPersona(personaId).id,
+    profileIds: validProfileIds(profileIds),
+    topic: String(topic || "Talk about our upcoming Disney Treasure cruise and ask what everyone is excited about.").slice(0, 500),
+    durationMinutes: clampCallMinutes(durationMinutes),
+    mode: "browser-voice"
   };
 }
 
+function publicCall(call) {
+  return {
+    id: call.id,
+    token: call.token,
+    status: call.status,
+    createdAt: call.createdAt,
+    personaId: call.personaId,
+    profileIds: call.profileIds,
+    topic: call.topic,
+    durationMinutes: call.durationMinutes,
+    mode: call.mode,
+    joinUrl: joinUrlFor(call)
+  };
+}
+
+function joinUrlFor(call) {
+  const base = PUBLIC_BASE_URL || "";
+  return `${base}/join.html?callId=${encodeURIComponent(call.id)}&token=${encodeURIComponent(call.token)}`;
+}
+
+function lookupCall(callId, token) {
+  return state.calls.find((item) => item.id === callId && item.token === token) || null;
+}
+
+function validPersona(id) {
+  return personas[id] || personas.clubhouse_captain;
+}
+
+function validProfileIds(ids) {
+  const allowed = new Set(defaultProfiles.map((p) => p.id));
+  const list = Array.isArray(ids) ? ids : [];
+  const filtered = list.filter((id) => allowed.has(id));
+  return filtered.length ? filtered : defaultProfiles.map((p) => p.id);
+}
+
+function clampCallMinutes(value) {
+  const n = Number(value || DEFAULT_CALL_MINUTES);
+  if (!Number.isFinite(n)) return DEFAULT_CALL_MINUTES;
+  return Math.min(MAX_CALL_MINUTES, Math.max(1, Math.round(n)));
+}
+
 function buildInstructions(call, persona) {
-  const profiles = call.profileIds
-    .map((id) => defaultProfiles.find((profile) => profile.id === id))
-    .filter(Boolean);
+  const profiles = defaultProfiles.filter((p) => call.profileIds.includes(p.id));
+  const kids = profiles.map((p) => `${p.name}: ${p.notes}`).join(" ");
+  const ship = state.settings.cruiseShip || "Disney Treasure";
+  const month = state.settings.cruiseMonth || "November";
+
   return [
-    "You are an original AI cruise countdown caller for Scott's family. You are not affiliated with Disney and must not claim to be Mickey Mouse, Minnie Mouse, Donald Duck, Goofy, or any other protected character.",
+    `You are ${persona.name}, an original AI cruise-countdown voice for a parent-supervised family call.`,
     persona.style,
-    `The family is going on the Disney Treasure cruise in ${state.settings.cruiseMonth}. Keep the conversation focused on excitement, preparation, ship fun, stateroom curiosity, and family-friendly cruise anticipation.`,
-    "You may mention publicly available ship and stateroom ideas in broad terms: cozy staterooms, ocean views or verandahs depending on the room, split bathrooms on many rooms, storage under beds, bunk or pull-down style beds, kids clubs, meals, shows, pools, and countdown games.",
-    `Profiles on the call: ${profiles.map((profile) => `${profile.name}: ${profile.notes}`).join(" ")}`,
-    `Call topic: ${call.topic}`,
-    `Keep the call under about ${call.durationMinutes} minutes. Ask one simple question at a time. Let the kids talk. Use parent-friendly language for the toddler. If asked for medical, safety, money, or booking decisions, tell them to ask a parent.`,
-    "Do not collect personal information from the kids. Do not ask where they live, where they go to school, or for secrets. If a child seems upset, reassure them and suggest getting a parent.",
-    "Every few turns, include a short playful activity: a would-you-rather, countdown cheer, packing idea, or pretend ship announcement."
+    "You are NOT Mickey Mouse, Minnie Mouse, Donald Duck, Goofy, or any Disney character. Never claim to be them or imitate them.",
+    "At the start, briefly disclose you are an AI voice helper.",
+    `Family is going on a ${ship} cruise in ${month}. Keep the conversation about cruise excitement, ship fun, staterooms, pools, kids clubs, food, and countdown games.`,
+    `Kids on the call: ${kids}`,
+    `Call theme: ${call.topic}`,
+    `Keep the whole call under about ${call.durationMinutes} minutes.`,
+    "Speak in short turns. Leave space for kids to answer. Ask one question at a time.",
+    "Keep language kid-safe. No scary topics, no personal data collection, no off-platform links.",
+    "If a parent asks to stop, end warmly right away.",
+    "If kids go silent, gently prompt with a simple choice question.",
+    "Do not record or claim to remember personal details beyond this call."
   ].join("\n");
 }
 
 async function loadState() {
   try {
-    const loaded = JSON.parse(await fs.readFile(DATA_PATH, "utf8"));
-    state.schedules = Array.isArray(loaded.schedules) ? loaded.schedules : [];
-    state.calls = Array.isArray(loaded.calls) ? loaded.calls : [];
-    state.settings = { ...state.settings, ...(loaded.settings || {}) };
+    const raw = await fs.readFile(DATA_PATH, "utf8");
+    const parsed = JSON.parse(raw);
+    state.schedules = Array.isArray(parsed.schedules) ? parsed.schedules : [];
+    state.calls = Array.isArray(parsed.calls) ? parsed.calls : [];
+    state.settings = { ...state.settings, ...(parsed.settings || {}) };
   } catch (error) {
-    if (error.code !== "ENOENT") throw error;
-    await saveState();
+    if (error && error.code !== "ENOENT") {
+      fastify.log.error({ err: error }, "failed to load state");
+    }
   }
 }
 
 async function saveState() {
   await fs.mkdir(path.dirname(DATA_PATH), { recursive: true });
-  await fs.writeFile(DATA_PATH, JSON.stringify(state, null, 2));
+  const tmp = `${DATA_PATH}.${process.pid}.tmp`;
+  await fs.writeFile(
+    tmp,
+    JSON.stringify(
+      {
+        schedules: state.schedules.slice(0, 200),
+        calls: state.calls.slice(0, 200),
+        settings: state.settings
+      },
+      null,
+      2
+    )
+  );
+  await fs.rename(tmp, DATA_PATH);
 }
 
-function readiness() {
-  const missing = [];
-  for (const key of ["ADMIN_TOKEN", "OPENAI_API_KEY", "TWILIO_ACCOUNT_SID", "TWILIO_AUTH_TOKEN", "TWILIO_FROM_NUMBER"]) {
-    if (!process.env[key]) missing.push(key);
+function pick(obj, keys) {
+  const out = {};
+  for (const key of keys) {
+    if (obj[key] !== undefined) out[key] = obj[key];
   }
-  if (!PUBLIC_BASE_URL) missing.push("PUBLIC_BASE_URL");
-  return { ok: missing.length === 0, missing };
-}
-
-function lookupCall(callId, token) {
-  return state.calls.find((call) => call.id === callId && call.token === token);
-}
-
-function validPersona(personaId) {
-  return personas[personaId] || personas.clubhouse_captain;
-}
-
-function validProfileIds(profileIds) {
-  const requested = Array.isArray(profileIds) && profileIds.length ? profileIds : defaultProfiles.map((profile) => profile.id);
-  const valid = new Set(defaultProfiles.map((profile) => profile.id));
-  return requested.filter((id) => valid.has(id));
-}
-
-function clampCallMinutes(value) {
-  const parsed = Number(value || DEFAULT_CALL_MINUTES);
-  return Math.max(1, Math.min(MAX_CALL_MINUTES, Number.isFinite(parsed) ? parsed : DEFAULT_CALL_MINUTES));
-}
-
-function pick(value, keys) {
-  return Object.fromEntries(Object.entries(value).filter(([key]) => keys.includes(key)));
+  return out;
 }
 
 function bearerToken(header) {
-  if (!header || !header.startsWith("Bearer ")) return "";
-  return header.slice("Bearer ".length);
+  if (!header || typeof header !== "string") return "";
+  const [type, value] = header.split(" ");
+  return type?.toLowerCase() === "bearer" ? value || "" : "";
 }
 
 function normalizeBaseUrl(value) {
-  return value.replace(/\/+$/, "");
-}
-
-function safeJson(data) {
-  try {
-    return JSON.parse(data.toString());
-  } catch {
-    return null;
-  }
-}
-
-function twiml(inner) {
-  return `<?xml version="1.0" encoding="UTF-8"?><Response>${inner}</Response>`;
-}
-
-function escapeXml(value) {
-  return String(value)
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&apos;");
+  return String(value || "").replace(/\/$/, "");
 }
