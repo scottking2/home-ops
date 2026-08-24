@@ -70,7 +70,9 @@ spec:
               LOCAL_MQTT_PORT: "1883"
               LOCAL_MQTT_PREFIX: victron
               # MQTT credentials must come from secret refs, never plaintext in git.
-              DB_WRITE_INTERVAL: "30"
+              # Free-tier D1 protection (2026-08-24): was 30s pushes into Lakemates D1.
+              # 300s still keeps owner dashboards fresh while cutting Victron row writes ~10x.
+              DB_WRITE_INTERVAL: "300"
               # Environment-specific Lakemates base URL must come from secret refs,
               # not hard-coded manifest values.
               VICTRON_CONFIG_PULL_ENABLED: "true"
