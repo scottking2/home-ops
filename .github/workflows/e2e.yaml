@@ -54,7 +54,7 @@ jobs:
       - name: Setup Workflow Tools
         if: ${{ github.event_name == 'pull_request' && steps.cache-homebrew-packages.outputs.cache-hit != 'true' }}
         shell: bash
-        run: brew install go-task
+        run: brew install go-task/tap/go-task
 
       - name: Run Workstation Brew tasks
         if: ${{ github.event_name == 'pull_request' && steps.cache-homebrew-packages.outputs.cache-hit != 'true' }}

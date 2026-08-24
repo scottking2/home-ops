@@ -22,7 +22,9 @@ jobs:
         uses: Homebrew/actions/setup-homebrew@master
 
       - name: Setup Workflow Tools
-        run: brew install fluxcd/tap/flux kubeconform kustomize
+        run: |
+          # Fully-qualified formula names auto-trust the specific item under Homebrew 6+ tap trust.
+          brew install fluxcd/tap/flux kubeconform kustomize
 
       - name: Run kubeconform
         shell: bash
