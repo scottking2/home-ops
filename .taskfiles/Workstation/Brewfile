@@ -1,11 +1,9 @@
-tap "fluxcd/tap"
-tap "go-task/tap"
-tap "siderolabs/talos"
+tap "fluxcd/tap", trusted: true
+tap "siderolabs/talos", trusted: true
 brew "age"
 brew "cloudflared"
 brew "direnv"
-brew "fluxcd/tap/flux"
-brew "go-task/tap/go-task"
+brew "fluxcd/tap/flux", trusted: true
 brew "helm"
 brew "jq"
 brew "kubeconform"
@@ -17,3 +15,10 @@ brew "stern"
 brew "talhelper"
 brew "talosctl"
 brew "yq"
+# go-task/tap only publishes a cask now. Cask install needs macOS xattr tooling and
+# breaks on Linux CI runners. Install go-task via taskfile.dev/install.sh in CI,
+# and keep the cask for local macOS workstations.
+if OS.mac?
+  tap "go-task/tap", trusted: true
+  cask "go-task/tap/go-task", trusted: true
+end

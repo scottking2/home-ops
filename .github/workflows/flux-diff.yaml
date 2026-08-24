@@ -11,6 +11,9 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.event.number || github.ref }}
   cancel-in-progress: true
 
+permissions:
+  contents: read
+
 jobs:
   flux-diff:
     name: Flux Diff
@@ -19,48 +22,59 @@ jobs:
       contents: read
       pull-requests: write
     strategy:
+      fail-fast: false
       matrix:
-        paths: ["kubernetes"]
-        resources: ["helmrelease", "kustomization"]
+        resource: ["hr", "ks"]
     steps:
       - name: Checkout
         uses: actions/checkout@v7
         with:
-          path: pull
+          fetch-depth: 0
 
-      - name: Checkout Default Branch
-        uses: actions/checkout@v7
+      - name: Setup flate
+        uses: home-operations/flate/action@797c483c107913d3f7757b7d3e1f6bc9179fe43d # v0.6.0
         with:
-          ref: "${{ github.event.repository.default_branch }}"
-          path: default
+          cache: true
+          version: "0.6.0"
+          # Materialize default branch for changed-only diffs via FLATE_BASE.
+          base: ${{ github.event.repository.default_branch }}
 
       - name: Diff Resources
-        uses: docker://ghcr.io/allenporter/flux-local:main
-        with:
-          args: >-
-            diff ${{ matrix.resources }}
-            --unified 6
-            --path /github/workspace/pull/${{ matrix.paths }}
-            --path-orig /github/workspace/default/${{ matrix.paths }}
-            --strip-attrs "helm.sh/chart,checksum/config,app.kubernetes.io/version,chart"
-            --limit-bytes 10000
-            --all-namespaces
-            --sources "home-kubernetes"
-            --output-file diff.patch
-
-      - name: Generate Diff
         id: diff
+        shell: bash
         run: |
-          cat diff.patch
-          echo "diff<<EOF" >> $GITHUB_OUTPUT
-          cat diff.patch >> $GITHUB_OUTPUT
-          echo "EOF" >> $GITHUB_OUTPUT
+          set -euo pipefail
+          # Walk Flux from kubernetes/flux; flate follows KS spec.path.
+          # --allow-missing-secrets soft-skips SOPS/in-cluster secrets offline.
+          diff_out="$(
+            flate diff "${{ matrix.resource }}" \
+              --path ./kubernetes/flux \
+              --output diff \
+              --allow-missing-secrets \
+              --strip-attr helm.sh/chart \
+              --strip-attr checksum/config \
+              --strip-attr checksum/secret \
+              --strip-attr app.kubernetes.io/version \
+              --strip-attr chart
+          )"
+
+          {
+            echo "diff<<EOF"
+            printf '%s\n' "${diff_out}"
+            echo "EOF"
+          } >> "${GITHUB_OUTPUT}"
+
+          if [[ -n "${diff_out}" ]]; then
+            echo "${diff_out}"
+          else
+            echo "No ${{ matrix.resource }} diff"
+          fi
 
       - if: ${{ steps.diff.outputs.diff != '' }}
         name: Add comment
         uses: mshick/add-pr-comment@v3
         with:
-          message-id: "${{ github.event.pull_request.number }}/${{ matrix.paths }}/${{ matrix.resources }}"
+          message-id: "${{ github.event.pull_request.number }}/kubernetes/${{ matrix.resource }}"
           message-failure: Diff was not successful
           message: |
             ```diff

@@ -28,7 +28,8 @@ jobs:
 
       - name: Setup Homebrew
         id: setup-homebrew
-        uses: Homebrew/actions/setup-homebrew@master
+        # Pin away from deprecated @master branch sync.
+        uses: Homebrew/actions/setup-homebrew@1f8e202ffddf94def7f42f6fa3a482e821489f9c # 2026.07.10.1
 
       - name: Setup Python
         uses: actions/setup-python@v7
@@ -51,10 +52,16 @@ jobs:
           key: venv-${{ runner.os }}-${{ steps.setup-python.outputs.python-version }}-${{ hashFiles('requirements.txt', 'requirements.yaml') }}
           path: .venv
 
-      - name: Setup Workflow Tools
-        if: ${{ github.event_name == 'pull_request' && steps.cache-homebrew-packages.outputs.cache-hit != 'true' }}
+      - name: Setup go-task
+        # go-task/tap ships a cask; Linux runners lack /usr/bin/xattr and cask
+        # install fails. Use the official static binary installer instead.
         shell: bash
-        run: brew install go-task
+        run: |
+          set -euo pipefail
+          if ! command -v task >/dev/null 2>&1; then
+            curl -fsSL https://taskfile.dev/install.sh | sh -s -- -d -b /usr/local/bin
+          fi
+          task --version
 
       - name: Run Workstation Brew tasks
         if: ${{ github.event_name == 'pull_request' && steps.cache-homebrew-packages.outputs.cache-hit != 'true' }}

@@ -159,10 +159,12 @@ patches:
               - rshared
               - rw
 
-  # Disable predictable NIC naming
+  # Disable predictable NIC naming.
+  # Talos 1.12+ UKI mode rejects extraKernelArgs unless grubUseUKICmdline is false.
   - |-
     machine:
       install:
+        grubUseUKICmdline: false
         extraKernelArgs:
           - net.ifnames=0
 
@@ -208,10 +210,13 @@ controlPlane:
           advertisedSubnets:
             - "{{ nodes.host_network }}"
 
-    # Disable default API server admission plugins.
+    # Clear default API server admission plugins.
+    # Talos 1.12+/talhelper multi-doc machine configs reject JSON6902 patches;
+    # use strategic-merge style instead.
     - |-
-      - op: remove
-        path: /cluster/apiServer/admissionControl
+      cluster:
+        apiServer:
+          admissionControl: []
 
     # Enable K8s Talos API Access
     - |-

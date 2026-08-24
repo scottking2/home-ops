@@ -1,2 +1,9 @@
 https://dash.cloudflare.com/profile/api-tokens
 https://www.mend.io/free-developer-tools/renovate/
+# Internal / non-public endpoints
+http://localhost
+http://127.0.0.1
+https://localhost
+https://127.0.0.1
+.*\.cluster\.local
+.*\.svc\.cluster\.local

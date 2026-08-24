@@ -10,6 +10,10 @@ on:
   schedule:
     - cron: "0 0 * * *"
 
+permissions:
+  contents: read
+  issues: write
+
 env:
   LYCHEE_OUTPUT: lychee/out.md
   WORKFLOW_ISSUE_TITLE: "Link Checker Dashboard 🔗"
@@ -27,7 +31,10 @@ jobs:
         id: lychee
         with:
           token: "${{ secrets.GITHUB_TOKEN }}"
-          args: --verbose --no-progress --exclude-mail './**/*.md'
+          # Mail is excluded by default since lychee 0.18+; --exclude-mail was
+          # removed in 0.24.x and now hard-fails the CLI before any scan runs.
+          # Accept 403 for sites that bot-block GitHub Actions egress.
+          args: --verbose --no-progress --accept '200,204,206,403' --exclude-path '.roo' --exclude-path '.ruru' --exclude-path 'roo-commander-v7.3.0-Wallaby' './**/*.md'
           output: "${{ env.LYCHEE_OUTPUT }}"
           debug: true
 

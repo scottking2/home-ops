@@ -9,7 +9,6 @@ spec:
   commonMetadata:
     labels:
       app.kubernetes.io/name: *app
-  dependsOn:
   path: ./kubernetes/apps/home-automation/mosquitto/app
   prune: true
   sourceRef:

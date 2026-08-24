@@ -57,6 +57,18 @@
   packageRules: [
     {
       description: [
+        'Private self-published GHCR image; Renovate cannot look up tags without package credentials',
+      ],
+      matchDatasources: [
+        'docker',
+      ],
+      enabled: false,
+      matchPackageNames: [
+        'ghcr.io/scottking2/vrm-mqtt-bridge',
+      ],
+    },
+    {
+      description: [
         'Loose versioning for non-semver packages',
       ],
       matchDatasources: [
