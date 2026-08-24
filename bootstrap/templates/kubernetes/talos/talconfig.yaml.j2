@@ -159,10 +159,12 @@ patches:
               - rshared
               - rw
 
-  # Disable predictable NIC naming
+  # Disable predictable NIC naming.
+  # Talos 1.12+ UKI mode rejects extraKernelArgs unless grubUseUKICmdline is false.
   - |-
     machine:
       install:
+        grubUseUKICmdline: false
         extraKernelArgs:
           - net.ifnames=0
 
