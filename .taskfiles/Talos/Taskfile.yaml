@@ -4,7 +4,9 @@ version: "3"
 
 vars:
   TALOS_DIR: "{{.KUBERNETES_DIR}}/talos"
-  TALHELPER_SECRET_FILE: "{{.TALOS_DIR}}/talhelper.sops.yaml"
+  # talhelper defaults to talsecret(.sops).yaml; keep the name aligned so
+  # genconfig finds secrets without an explicit --secret-file flag.
+  TALHELPER_SECRET_FILE: "{{.TALOS_DIR}}/talsecret.sops.yaml"
   TALHELPER_CONFIG_FILE: "{{.TALOS_DIR}}/talconfig.yaml"
 
 env:

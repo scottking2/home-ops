@@ -208,10 +208,13 @@ controlPlane:
           advertisedSubnets:
             - "{{ nodes.host_network }}"
 
-    # Disable default API server admission plugins.
+    # Clear default API server admission plugins.
+    # Talos 1.12+/talhelper multi-doc machine configs reject JSON6902 patches;
+    # use strategic-merge style instead.
     - |-
-      - op: remove
-        path: /cluster/apiServer/admissionControl
+      cluster:
+        apiServer:
+          admissionControl: []
 
     # Enable K8s Talos API Access
     - |-
