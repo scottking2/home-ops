@@ -46,7 +46,10 @@ jobs:
           registry: ghcr.io
           # repository_owner is stable for schedule runs; actor can vary.
           username: ${{ github.repository_owner }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+          # Prefer GHCR_TOKEN when present. The existing home-ops/devcontainer
+          # package is not linked to this repository, so GITHUB_TOKEN gets
+          # permission_denied: write_package even with packages: write.
+          password: ${{ secrets.GHCR_TOKEN || secrets.GITHUB_TOKEN }}
 
       - name: Build and push
         uses: devcontainers/ci@v0.3

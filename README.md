@@ -37,7 +37,7 @@ Hopefully some of this peeked your interests!  If you are marching forward, now 
 > [!NOTE]
 > 1. The included behaviour of Talos or k3s is that all nodes are able to run workloads, **including** the controller nodes. **Worker nodes** are therefore **optional**.
 > 2. Do you have 3 or more nodes? It is highly recommended to make 3 of them controller nodes for a highly available control plane.
-> 3. Running the cluster on Proxmox VE? My thoughts and recommendations about that are documented [here](https://onedr0p.github.io/home-ops/notes/proxmox-considerations.html).
+> 3. Running the cluster on Proxmox VE? Keep hypervisor storage/networking separate from Kubernetes storage, and avoid nested hyperconverged storage stacks when possible.
 
 | Role    | Cores    | Memory        | System Disk               |
 |---------|----------|---------------|---------------------------|
@@ -106,8 +106,8 @@ Hopefully some of this peeked your interests!  If you are marching forward, now 
 
 
 > [!NOTE]
-> 1. It is recommended to have an 8GB RasPi model. Most important is to **boot from an external SSD/NVMe** rather than an SD card. This is [supported natively](https://www.raspberrypi.com/documentation/computers/raspberry-pi.html), however if you have an early model you may need to [update the bootloader](https://www.tomshardware.com/how-to/boot-raspberry-pi-4-usb) first.
-> 2. Check the [power requirements](https://www.raspberrypi.com/documentation/computers/raspberry-pi.html#power-supply) if using a PoE Hat and a SSD/NVMe dongle.
+> 1. It is recommended to have an 8GB RasPi model. Most important is to **boot from an external SSD/NVMe** rather than an SD card. Native USB/NVMe boot is supported on current Raspberry Pi OS/firmware; early Pi 4 models may need a bootloader update first (see Raspberry Pi docs / Tom's Hardware guides).
+> 2. Check Raspberry Pi PoE Hat + SSD/NVMe power requirements before relying on PoE alone.
 
 1. Download the latest stable release of Debian from [here](https://raspi.debian.net/tested-images). _**Do not** use Raspbian or DietPi or any other flavor Linux OS._
 
@@ -157,7 +157,7 @@ Once you have installed Talos or Debian on your nodes, there are six stages to g
 
 You have two different options for setting up your local workstation.
 
-- First option is using a `devcontainer` which requires you to have Docker and VSCode installed. This method is the fastest to get going because all the required CLI tools are provided for you in my [devcontainer](https://github.com/onedr0p/cluster-template/pkgs/container/cluster-template%2Fdevcontainer) image.
+- First option is using a `devcontainer` which requires you to have Docker and VSCode installed. This method is the fastest to get going because all the required CLI tools are provided for you in the repo's `.devcontainer` image published to GHCR.
 - The second option is setting up the CLI tools directly on your workstation.
 
 #### Devcontainer method

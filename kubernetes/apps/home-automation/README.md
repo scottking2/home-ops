@@ -10,13 +10,13 @@ This namespace contains Home Assistant, Frigate, and Mosquitto MQTT broker for h
 - **LoadBalancer IP**: `10.0.0.236`
 
 ### 2. Home Assistant
-- **URL**: https://ha.${SECRET_DOMAIN}
+- **URL**: `https://ha.<domain>` (cluster external hostname)
 - **Purpose**: Home automation platform
 - **Storage**: 10Gi on Longhorn
 - **Configuration**: Will be created on first startup
 
 ### 3. Frigate
-- **URL**: https://frigate.${SECRET_DOMAIN}
+- **URL**: `https://frigate.<domain>` (cluster external hostname)
 - **Purpose**: NVR with AI object detection for security cameras
 - **Storage**: Configured for NFS to Synology NAS (needs configuration)
 
@@ -63,7 +63,7 @@ kubectl get pods -n home-automation -w
 
 ### 3. Configure Frigate Cameras
 
-1. Access Frigate at https://frigate.${SECRET_DOMAIN}
+1. Access Frigate at `https://frigate.<domain>`
 2. Edit the ConfigMap at `frigate/app/configmap.yaml`
 3. Add your camera configurations:
 
@@ -91,7 +91,7 @@ cameras:
 
 ### 4. Configure Home Assistant
 
-1. Access Home Assistant at https://ha.${SECRET_DOMAIN}
+1. Access Home Assistant at `https://ha.<domain>`
 2. Complete the initial setup wizard
 3. Add the MQTT integration:
    - Server: `mosquitto.home-automation.svc.cluster.local`
