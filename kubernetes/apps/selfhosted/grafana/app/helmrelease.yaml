@@ -28,7 +28,7 @@ spec:
   values:
     replicas: 1
 
-    podSecurityContext:
+    securityContext:
       fsGroupChangePolicy: OnRootMismatch
 
     env:
