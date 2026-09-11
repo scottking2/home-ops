@@ -28,6 +28,9 @@ spec:
   values:
     replicas: 1
 
+    podSecurityContext:
+      fsGroupChangePolicy: OnRootMismatch
+
     env:
       GF_ANALYTICS_CHECK_FOR_UPDATES: "false"
       GF_ANALYTICS_CHECK_FOR_PLUGIN_UPDATES: "false"
