@@ -29,7 +29,9 @@ spec:
     replicas: 1
 
     securityContext:
-      fsGroupChangePolicy: OnRootMismatch
+      fsGroup: null
+    initChownData:
+      enabled: false
 
     env:
       GF_ANALYTICS_CHECK_FOR_UPDATES: "false"
