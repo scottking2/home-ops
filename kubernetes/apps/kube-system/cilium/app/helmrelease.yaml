@@ -40,6 +40,9 @@ spec:
       enabled: true
     hubble:
       enabled: true
+      tls:
+        auto:
+          certValidityDuration: 366
       metrics:
         enabled:
           - dns:query
