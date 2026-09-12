@@ -30,29 +30,29 @@ spec:
                   for target in $TARGETS; do
                     NS=$(echo "$target" | cut -d/ -f1)
                     PVC=$(echo "$target" | cut -d/ -f2)
-                    SNAP_NAME="${PVC}-snap-${TIMESTAMP}"
-                    echo "Creating snapshot ${SNAP_NAME} for ${NS}/${PVC}"
+                    SNAP_NAME="$${PVC}-snap-$${TIMESTAMP}"
+                    echo "Creating snapshot $${SNAP_NAME} for $${NS}/$${PVC}"
                     cat <<EOF | kubectl apply -f -
                   apiVersion: snapshot.storage.k8s.io/v1
                   kind: VolumeSnapshot
                   metadata:
-                    name: ${SNAP_NAME}
-                    namespace: ${NS}
+                    name: $${SNAP_NAME}
+                    namespace: $${NS}
                   spec:
                     volumeSnapshotClassName: iscsi-csi-snapshots
                     source:
-                      persistentVolumeClaimName: ${PVC}
+                      persistentVolumeClaimName: $${PVC}
                   EOF
-                    echo "Snapshot ${SNAP_NAME} created"
+                    echo "Snapshot $${SNAP_NAME} created"
                   done
                   # Cleanup old snapshots (keep last 4 per PVC)
                   for target in $TARGETS; do
                     NS=$(echo "$target" | cut -d/ -f1)
                     PVC=$(echo "$target" | cut -d/ -f2)
-                    echo "Pruning old snapshots for ${NS}/${PVC}..."
+                    echo "Pruning old snapshots for $${NS}/$${PVC}..."
                     kubectl get volumesnapshot -n "$NS" --sort-by=.metadata.creationTimestamp \
                       -o jsonpath="{range .items[*]}{.metadata.name}{'\n'}{end}" \
-                      | grep "^${PVC}-snap-" \
+                      | grep "^$${PVC}-snap-" \
                       | head -n -4 \
                       | xargs -r -I{} kubectl delete volumesnapshot {} -n "$NS"
                   done
