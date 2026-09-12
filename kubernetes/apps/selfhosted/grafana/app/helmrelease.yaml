@@ -202,10 +202,6 @@ spec:
         current-drive-view:
           url: https://raw.githubusercontent.com/jheredianet/Teslamate-CustomGrafanaDashboards/main/dashboards/CurrentDriveView.json
           datasource: TeslaMate
-        dc-charging-curves:
-          url: https://raw.githubusercontent.com/jheredianet/Teslamate-CustomGrafanaDashboards/main/dashboards/DCChargingCurves.json
-          datasource: TeslaMate
-
     extraVolumes:
       - name: cost-overview-dashboard
         configMap:
