@@ -26,6 +26,8 @@ spec:
     controllers:
       main:
         strategy: RollingUpdate
+        serviceAccount:
+          identifier: main
         containers:
           main:
             image:
@@ -53,6 +55,7 @@ spec:
               seccompProfile:
                 type: RuntimeDefault
         pod:
+          automountServiceAccountToken: true
           securityContext:
             runAsUser: 65534
             runAsGroup: 65534
@@ -74,8 +77,9 @@ spec:
               operator: Exists
               effect: NoSchedule
     serviceAccount:
-      create: true
-      name: system-upgrade
+      main:
+        enabled: true
+        forceRename: system-upgrade
     service:
       main:
         enabled: false
