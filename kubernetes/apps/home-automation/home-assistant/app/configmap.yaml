@@ -38,7 +38,7 @@ data:
       - name: Near Home
         latitude: 40.0301327
         longitude: -111.6818796
-        radius: 75
+        radius: 300
         icon: mdi:home-map-marker
         passive: false
       - name: Leaving Home
@@ -53,7 +53,7 @@ data:
     # Triggers: Dark King Tesla + Scott's iPhone + Grace's iPhone
     #
     # Zones used:
-    #   zone.near_home    — 75m radius (trigger open when entering)
+    #   zone.near_home    — 300m radius (trigger open when entering)
     #   zone.leaving_home — 50m radius (trigger close when leaving)
     #
     # Time guard: automations disabled 12:00AM – 4:30AM
