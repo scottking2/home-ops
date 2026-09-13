@@ -5,3 +5,4 @@ resources:
   - ./pvc.yaml
   - ./configmap.yaml
   - ./helmrelease.yaml
+  - ./dnsendpoint.yaml
