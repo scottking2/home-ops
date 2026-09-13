@@ -37,7 +37,9 @@ spec:
       - --crd-source-apiversion=externaldns.k8s.io/v1alpha1
       - --crd-source-kind=DNSEndpoint
     policy: sync
-    sources: ["crd", "ingress"]
+    # External tunnel services must be published as CNAMEs to the tunnel,
+    # never as proxied A records pointing at the private ingress IP.
+    sources: ["crd"]
     txtPrefix: k8s.
     txtOwnerId: default
     domainFilters: ["${SECRET_DOMAIN}"]

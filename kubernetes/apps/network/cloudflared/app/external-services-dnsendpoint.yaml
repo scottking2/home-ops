@@ -1,0 +1,42 @@
+apiVersion: externaldns.k8s.io/v1alpha1
+kind: DNSEndpoint
+metadata:
+  name: external-services
+spec:
+  endpoints:
+    - dnsName: echo-server-external.${SECRET_DOMAIN}
+      recordType: CNAME
+      targets:
+        - external.${SECRET_DOMAIN}
+    - dnsName: flux-webhook.${SECRET_DOMAIN}
+      recordType: CNAME
+      targets:
+        - external.${SECRET_DOMAIN}
+    - dnsName: grafana.${SECRET_DOMAIN}
+      recordType: CNAME
+      targets:
+        - external.${SECRET_DOMAIN}
+    - dnsName: mealie.${SECRET_DOMAIN}
+      recordType: CNAME
+      targets:
+        - external.${SECRET_DOMAIN}
+    - dnsName: plex.${SECRET_DOMAIN}
+      recordType: CNAME
+      targets:
+        - external.${SECRET_DOMAIN}
+    - dnsName: rancher.${SECRET_DOMAIN}
+      recordType: CNAME
+      targets:
+        - external.${SECRET_DOMAIN}
+    - dnsName: tautulli.${SECRET_DOMAIN}
+      recordType: CNAME
+      targets:
+        - external.${SECRET_DOMAIN}
+    - dnsName: teslamate.${SECRET_DOMAIN}
+      recordType: CNAME
+      targets:
+        - external.${SECRET_DOMAIN}
+    - dnsName: cruise-caller.${SECRET_DOMAIN}
+      recordType: CNAME
+      targets:
+        - external.${SECRET_DOMAIN}
