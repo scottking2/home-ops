@@ -30,7 +30,7 @@ spec:
           main:
             image:
               repository: lscr.io/linuxserver/sonarr
-              tag: 4.0.15@sha256:56ddf913ee056e463098bf673e24187bda69dce0cb44c8edfcc62bad8700b113
+              tag: 4.0.20@sha256:aae7c64ef13a4055c5b00607d5f2a2997d5a03304eb96e1930f9665728192e75
             env:
               TZ: America/Denver
               PUID: "568"
