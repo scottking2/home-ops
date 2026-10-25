@@ -30,7 +30,7 @@ spec:
           main:
             image:
               repository: lscr.io/linuxserver/radarr
-              tag: 5.27.5@sha256:7300d13a6b6c6490d561097d03f4873db769efa2373473f7583e27717168c915
+              tag: 5.28.0@sha256:fa64458bf8b5b4620d318d43272c18113b0fc8606f90e7768a668a54afc5a2cd
             env:
               TZ: America/Denver
               PUID: "568"
