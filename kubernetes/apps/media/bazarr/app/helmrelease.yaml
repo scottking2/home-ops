@@ -30,7 +30,7 @@ spec:
           main:
             image:
               repository: lscr.io/linuxserver/bazarr
-              tag: 1.6.2@sha256:7f086a154470936463db52ad1fb9ea77cbcd2ee962ab08f08dad13540dde41e1
+              tag: 1.6.2@sha256:7764771b044aa065ffc89c1d2c4512dbd545cce63a5ca0def626535ac1571282
             env:
               TZ: America/Denver
               PUID: "568"
